@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+  <head>
+    <title>An example of vue-draggable-virtual-scroll-list</title>
+    <script src="https://unpkg.com/vue@2.6.11"></script>
+    <script src="https://cdn.rawgit.com/Marak/faker.js/v4.1.0/examples/browser/js/faker.min.js"></script>
+    <script src="../dist/bundle.js"></script>
+    <style>
+      #main > div {
+        overflow-y: auto;
+        height: 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main">
+      <draggable-virtual-list
+        v-model="items"
+        :size="20"
+        :keeps="10"
+        :data-key="'id'"
+        :data-sources="items"
+        :data-component="Item"
+        @start="drag=true"
+        @end="drag=false"
+      />
+    </div>
+
+    <script>
+      const Item = {
+        props: {
+          source: {
+            type: Object,
+            default () {
+              return {}
+            },
+          },
+        },
+        template: '<span :key="source.id">{{ source.id }}: {{ source.name }}</span>'
+      }
+
+      function generateItems(length = 100) {
+        return Array.from(
+          { length },
+          (_, id) => ({ id: id + '', name: faker.name.findName() }));
+      }
+
+      new Vue({
+        el: '#main',
+        components: {
+          DraggableVirtualList,
+        },
+        data() {
+          return { items: generateItems(), Item }
+        },
+        // FIXME: for debug
+        watch: {
+          items: function() {
+            console.log(arguments)
+          }
+        }
+      })
+    </script>
+  </body>
+</html>

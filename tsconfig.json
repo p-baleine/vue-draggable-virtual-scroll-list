@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "target": "es5",
+    "module": "es2015",
+    "moduleResolution": "node",
+    "lib": [
+      "es2019",
+      "dom"
+    ],
+    "experimentalDecorators": true
+  },
+  "files": [
+    "src/index.ts",
+    "types/vue-virtual-scroll-list.d.ts"
+  ]
+}
