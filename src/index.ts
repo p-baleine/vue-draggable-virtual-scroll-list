@@ -28,6 +28,8 @@ interface DraggableMoveEvent extends Event {
   }
 }
 
+let virtualListGetRenderSlotsPatched = false
+
 // SortableJS/Vue.Draggable + tangbc/vue-virtual-scroll-list.
 @Component
 export default class DraggableVirtualList<T> extends Vue {
@@ -44,9 +46,12 @@ export default class DraggableVirtualList<T> extends Vue {
   @Prop() value!: Array<T>;
 
   public created() {
-    // このパッチをあてると、VirtualListがDraggableを子どもに持つようになる
-    patchVirtualListGetRenderSlots(
-      this.virtualListCtor, this.draggableCtor, this)
+    if (!virtualListGetRenderSlotsPatched) {
+      // このパッチをあてると、VirtualListがDraggableを子どもに持つようになる
+      patchVirtualListGetRenderSlots(
+        this.virtualListCtor, this.draggableCtor)
+      virtualListGetRenderSlotsPatched = true
+    }
   }
 
   public render(h: CreateElement) {
@@ -71,11 +76,14 @@ export default class DraggableVirtualList<T> extends Vue {
 /* FUCKING UGLY NAIVE MONKEY-PATCHINGs */
 
 // Monkey-patch VirtualList.prototype.getRenderSlots to include Draggable.
-function patchVirtualListGetRenderSlots<T>(
+function patchVirtualListGetRenderSlots(
   VirtualList: IVirtualList,
-  Draggable: IDraggable,
-  context: DraggableVirtualList<T>) {
+  Draggable: IDraggable) {
   const { getRenderSlots: original } = VirtualList.options.methods
+
+  // TODO: VirtualList と draggable を直接いじくる
+  // コンポーネントで包む必要ないのでは？どうせ汚ないことしかしていないんだし
+  // 両者ともexternalにできる？？
 
   function patched(h: CreateElement) {
     const virtualList = this
@@ -84,31 +92,62 @@ function patchVirtualListGetRenderSlots<T>(
     return [
       h(Draggable, {
         props: {
-          value: context.value,
+          value: virtualList.dataSources,
         },
         on: {
           change: (e: Event) => {
-            if (!('moved' in e)) {
-              return
+            if ('moved' in e) {
+              onMoved.call(virtualList, e)
+            } else if ('added' in e) {
+              onAdded.call(virtualList, e)
+            } else if ('removed' in e) {
+              onRemoved.call(virtualList, e)
             }
-            onMoved.call(this, e, virtualList)
           }
+        },
+        // FIXME: なんだこれ、やるならもらった attr 使え
+        attrs: {
+          group: 'phrase-list'
         }
       }, slots)
     ]
   }
 
-  // Draggableのchange:movedイベントをinputイベントに変換する
-  // VirtualListを加味した添字を元に作成したリストをinputイベントの情報としてemitする
-  function onMoved(evt: DraggableMoveEvent, virtualList: IVirtualList) {
+  // 我々はDraggableがinputイベントでもらえる、今見えているDOMに基づくnewListの
+  // かわりに、Draggableのchangeイベントでもらえる添字を用いて仮想リスト向けの
+  // newListを作成しこれをinputイベントでemitする
+  function onMoved(evt: DraggableMoveEvent) {
+    const virtualList = this
     const { start } = virtualList.range
     const { oldIndex, newIndex } = evt.moved
-    const newList = [...context.value];
+    const newList = [...(virtualList as any).dataSources];
 
     newList.splice(
       start + newIndex,
       0,
       newList.splice(start + oldIndex, 1)[0]);
+
+    this.$emit('input', newList);
+  }
+
+  function onAdded(e: any) {
+    const virtualList = this
+    const { start } = virtualList.range
+    const { element, newIndex } = e.added
+    const newList = [...(virtualList as any).dataSources];
+
+    newList.splice(start + newIndex, 0, element);
+
+    this.$emit('input', newList);
+  }
+
+  function onRemoved(e: any) {
+    const virtualList = this
+    const { start } = virtualList.range
+    const { oldIndex } = e.removed
+    const newList = [...(virtualList as any).dataSources];
+
+    newList.splice(start + oldIndex, 1);
 
     this.$emit('input', newList);
   }

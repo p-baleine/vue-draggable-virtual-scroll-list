@@ -6,24 +6,101 @@
     <script src="https://cdn.rawgit.com/Marak/faker.js/v4.1.0/examples/browser/js/faker.min.js"></script>
     <script src="../dist/bundle.js"></script>
     <style>
-      #main > div {
+      #main {
+        font-size: 16px;
+      }
+      .example {
+        padding: 10px;
+      }
+      .container {
+        display: flex;
+        width: 100%;
+        align-items: flex-start;
+      }
+      .phrase-list {
         overflow-y: auto;
         height: 200px;
+        border: 2px solid #696969;
+        border-radius: 3px;
+        width: 45%;
+        margin: 0 2.5% 0;
+      }
+      .example .phrase-list:nth-child(1) {
+        height: 500px;
+        background-color: #ffdbed;
+      }
+      .example .phrase-list:nth-child(2) {
+        height: 300px;
+        background-color: #d6ffff;
+      }
+      .phrase {
+        display: flex;
+        align-items: center;
+        padding: 0 1em;
+        height: 3rem;
+        border-bottom: 1px solid;
+        border-color: #d3d3d3;
+      }
+      ::-webkit-scrollbar {
+        width: 5px;
+      }
+      ::-webkit-scrollbar-track {
+        border-radius: 10px;
+        box-shadow: inset 0 0 6px rgba(0, 0, 0, .1);
+      }
+      ::-webkit-scrollbar-thumb {
+        background-color: rgba(0, 0, 50, .5);
+        border-radius: 10px;
+        box-shadow:0 0 0 1px rgba(255, 255, 255, .3);
       }
     </style>
   </head>
   <body>
     <div id="main">
-      <draggable-virtual-list
-        v-model="items"
-        :size="20"
-        :keeps="10"
-        :data-key="'id'"
-        :data-sources="items"
-        :data-component="Item"
-        @start="drag=true"
-        @end="drag=false"
-      />
+      <section class="example">
+        <h2>Simple</h2>
+        <div class="container">
+          <draggable-virtual-list
+            class="phrase-list"
+            v-model="items"
+            :size="48"
+            :keeps="10"
+            :data-key="'id'"
+            :data-sources="items"
+            :data-component="Item"
+          >
+          </draggable-virtual-list>
+        </div>
+      </section>
+
+      <section class="example">
+        <h2>Two Lists</h2>
+        <div class="container">
+          <draggable-virtual-list
+            class="phrase-list"
+            group="phrase-list"
+            v-model="items2"
+            :size="48"
+            :keeps="10"
+            :data-key="'id'"
+            :data-sources="items2"
+            :data-component="Item"
+          >
+          </draggable-virtual-list>
+
+          <draggable-virtual-list
+            class="phrase-list"
+            group="phrase-list"
+            v-model="items3"
+            :size="48"
+            :keeps="10"
+            :data-key="'id'"
+            :data-sources="items3"
+            :data-component="Item"
+          >
+          </draggable-virtual-list>
+        </div>
+      </section>
     </div>
 
     <script>
@@ -36,13 +113,20 @@
             },
           },
         },
-        template: '<span :key="source.id">{{ source.id }}: {{ source.name }}</span>'
+        template: `
+          <div class="phrase" :key="source.id">
+            {{ source.content }}
+          </div>
+        `
       }
 
       function generateItems(length = 100) {
         return Array.from(
           { length },
-          (_, id) => ({ id: id + '', name: faker.name.findName() }));
+          (_, id) => ({
+            id: id + '',
+            content: `${id}：${faker.name.findName()}`
+          }));
       }
 
       new Vue({
@@ -51,13 +135,24 @@
           DraggableVirtualList,
         },
         data() {
-          return { items: generateItems(), Item }
+          return {
+            items: generateItems(50),
+            items2: generateItems(100),
+            items3: generateItems(50),
+            Item
+          }
         },
         // FIXME: for debug
         watch: {
           items: function() {
             console.log(arguments)
-          }
+          },
+          items2: function() {
+            console.log(arguments)
+          },
+          items3: function() {
+            console.log(arguments)
+          },
         }
       })
     </script>

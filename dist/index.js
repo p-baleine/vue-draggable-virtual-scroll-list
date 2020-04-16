@@ -103,6 +103,9 @@ function patchVirtualListGetRenderSlots(VirtualList, Draggable, context) {
                         }
                         onMoved.call(_this, e, virtualList);
                     }
+                },
+                attrs: {
+                    group: 'phrase-list'
                 }
             }, slots)
         ];
