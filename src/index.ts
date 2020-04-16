@@ -89,10 +89,25 @@ function patchVirtualListGetRenderSlots(
     const virtualList = this
     const slots = original.call(virtualList, h)
 
+    // 絶対に virtualList.dataDey のフィールドは存在する
+    // 且つ、それは virtualList.dataSources の中でユニークだとする
+    // そうすれば、cloneのタイミングで、本物をひいてくることができるはず
+    function findRealElement(targetElement: any) {
+      const targetId = targetElement[virtualList.dataKey]
+      const targetIndex = virtualList.dataSources.findIndex((x: any) => (
+        x[virtualList.dataKey] === targetId
+      ))
+      const { start } = virtualList.range
+      const realElement = virtualList.dataSources[start + targetIndex]
+      console.log('clone called!!', targetElement, realElement)
+      return realElement
+    }
+
     return [
       h(Draggable, {
         props: {
           value: virtualList.dataSources,
+          clone: findRealElement,
         },
         on: {
           change: (e: Event) => {
