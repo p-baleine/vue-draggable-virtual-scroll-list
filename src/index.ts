@@ -1,7 +1,7 @@
 import { CreateElement, VNode, VueConstructor } from 'vue';
 import { Vue, Component, Prop } from 'vue-property-decorator'
 import Draggable from 'vuedraggable'
-import VirtualList from 'vue-virtual-scroll-list/src/index'
+import VirtualList from 'vue-virtual-scroll-list'
 
 interface IVirtualList extends VueConstructor {
   options: {

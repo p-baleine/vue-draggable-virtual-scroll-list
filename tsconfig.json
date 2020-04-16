@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "declaration": true,
     "outDir": "./dist/",
     "noImplicitAny": true,
     "sourceMap": true,
@@ -10,7 +11,8 @@
       "es2019",
       "dom"
     ],
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "esModuleInterop": true
   },
   "files": [
     "src/index.ts",

@@ -26,29 +26,30 @@ var __spreadArrays = (this && this.__spreadArrays) || function () {
 };
 import { Vue, Component, Prop } from 'vue-property-decorator';
 import Draggable from 'vuedraggable';
-import VirtualList from 'vue-virtual-scroll-list/src/index';
+import VirtualList from 'vue-virtual-scroll-list';
+var virtualListGetRenderSlotsPatched = false;
 // SortableJS/Vue.Draggable + tangbc/vue-virtual-scroll-list.
+// この子はDraggableを子どもにもつVirtualListをラッピングしている
+// VirtualListがDraggableを子どもに持てるように、まだ適用前であれば
+// この子はVirtualListの描画関連のメソッドにMonkey-patchを適用している
 var DraggableVirtualList = /** @class */ (function (_super) {
     __extends(DraggableVirtualList, _super);
     function DraggableVirtualList() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     DraggableVirtualList.prototype.created = function () {
-        // このパッチをあてると、VirtualListがDraggableを子どもに持つようになる
-        patchVirtualListGetRenderSlots(this.virtualListCtor, this.draggableCtor, this);
+        if (!virtualListGetRenderSlotsPatched) {
+            // このパッチをあてると、VirtualListがDraggableを子どもに持つようになる
+            patchVirtualListGetRenderSlots(this.virtualListCtor, this.draggableCtor);
+            virtualListGetRenderSlotsPatched = true;
+        }
     };
     DraggableVirtualList.prototype.render = function (h) {
-        var _a = this, keeps = _a.keeps, dataKey = _a.dataKey, dataSources = _a.dataSources, dataComponent = _a.dataComponent, size = _a.size;
         return h(this.virtualListCtor, {
-            props: {
-                keeps: keeps,
-                dataKey: dataKey,
-                dataSources: dataSources,
-                dataComponent: dataComponent,
-                size: size,
-            },
+            props: this.$props,
+            attrs: this.$attrs,
             on: {
-                // Draggableのinputイベントをプロパゲートする
+                // VirtualListのinputイベントをプロパゲートする
                 input: this.$emit.bind(this, 'input'),
             }
         });
@@ -61,21 +62,6 @@ var DraggableVirtualList = /** @class */ (function (_super) {
     ], DraggableVirtualList.prototype, "virtualListCtor", void 0);
     __decorate([
         Prop()
-    ], DraggableVirtualList.prototype, "keeps", void 0);
-    __decorate([
-        Prop()
-    ], DraggableVirtualList.prototype, "dataKey", void 0);
-    __decorate([
-        Prop()
-    ], DraggableVirtualList.prototype, "dataSources", void 0);
-    __decorate([
-        Prop()
-    ], DraggableVirtualList.prototype, "dataComponent", void 0);
-    __decorate([
-        Prop()
-    ], DraggableVirtualList.prototype, "size", void 0);
-    __decorate([
-        Prop()
     ], DraggableVirtualList.prototype, "value", void 0);
     DraggableVirtualList = __decorate([
         Component
@@ -85,38 +71,69 @@ var DraggableVirtualList = /** @class */ (function (_super) {
 export default DraggableVirtualList;
 /* FUCKING UGLY NAIVE MONKEY-PATCHINGs */
 // Monkey-patch VirtualList.prototype.getRenderSlots to include Draggable.
-function patchVirtualListGetRenderSlots(VirtualList, Draggable, context) {
+function patchVirtualListGetRenderSlots(VirtualList, Draggable) {
     var original = VirtualList.options.methods.getRenderSlots;
     function patched(h) {
-        var _this = this;
         var virtualList = this;
         var slots = original.call(virtualList, h);
+        // 絶対に virtualList.dataDey のフィールドは存在する
+        // 且つ、それは virtualList.dataSources の中でユニークだとする
+        // そうすれば、cloneのタイミングで、本物をひいてくることができるはず
+        function findRealElement(targetElement) {
+            var targetId = targetElement[virtualList.dataKey];
+            var targetIndex = virtualList.dataSources.findIndex(function (x) { return (x[virtualList.dataKey] === targetId); });
+            var start = virtualList.range.start;
+            var realElement = virtualList.dataSources[start + targetIndex];
+            console.log('clone called!!', targetElement, realElement);
+            return realElement;
+        }
         return [
             h(Draggable, {
                 props: {
-                    value: context.value,
+                    value: virtualList.dataSources,
+                    clone: findRealElement,
                 },
                 on: {
                     change: function (e) {
-                        if (!('moved' in e)) {
-                            return;
+                        if ('moved' in e) {
+                            onMoved.call(virtualList, e);
                         }
-                        onMoved.call(_this, e, virtualList);
+                        else if ('added' in e) {
+                            onAdded.call(virtualList, e);
+                        }
+                        else if ('removed' in e) {
+                            onRemoved.call(virtualList, e);
+                        }
                     }
                 },
-                attrs: {
-                    group: 'phrase-list'
-                }
+                attrs: virtualList.$attrs
             }, slots)
         ];
     }
-    // Draggableのchange:movedイベントをinputイベントに変換する
-    // VirtualListを加味した添字を元に作成したリストをinputイベントの情報としてemitする
-    function onMoved(evt, virtualList) {
+    function onMoved(evt) {
+        var virtualList = this;
         var start = virtualList.range.start;
         var _a = evt.moved, oldIndex = _a.oldIndex, newIndex = _a.newIndex;
-        var newList = __spreadArrays(context.value);
+        var newList = __spreadArrays(virtualList.dataSources);
         newList.splice(start + newIndex, 0, newList.splice(start + oldIndex, 1)[0]);
+        this.$emit('input', newList);
+    }
+    // TODO: 継承にする、prototypeなんかいじんじゃねーよ
+    function onAdded(e) {
+        var virtualList = this;
+        var start = virtualList.range.start;
+        var _a = e.added, element = _a.element, newIndex = _a.newIndex;
+        var newList = __spreadArrays(virtualList.dataSources);
+        console.log(element);
+        newList.splice(start + newIndex, 0, element);
+        this.$emit('input', newList);
+    }
+    function onRemoved(e) {
+        var virtualList = this;
+        var start = virtualList.range.start;
+        var oldIndex = e.removed.oldIndex;
+        var newList = __spreadArrays(virtualList.dataSources);
+        newList.splice(start + oldIndex, 1);
         this.$emit('input', newList);
     }
     VirtualList.options.methods.getRenderSlots = patched;

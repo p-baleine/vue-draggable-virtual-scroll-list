@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc --build tsconfig.json && webpack --config webpack.config.js",
     "watch": "webpack --watch --config webpack.config.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "author": "",
   "license": "MIT",
@@ -17,13 +17,21 @@
     "vuedraggable": "^2.23.2"
   },
   "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-proposal-decorators": "^7.8.3",
     "@babel/preset-env": "^7.9.5",
     "@babel/preset-typescript": "^7.9.0",
     "@types/jest": "^25.2.1",
     "@types/vuedraggable": "^2.23.0",
+    "@vue/test-utils": "^1.0.0-beta.33",
+    "babel-jest": "^25.3.0",
     "jest": "^25.3.0",
+    "jsdom-global": "^3.0.2",
+    "ts-jest": "^25.3.1",
     "ts-loader": "^6.2.2",
     "typescript": "^3.8.3",
+    "vue-template-compiler": "^2.6.11",
     "webpack": "^4.42.1",
     "webpack-cli": "^3.3.11"
   }
