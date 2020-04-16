@@ -31,17 +31,13 @@ interface DraggableMoveEvent extends Event {
 let virtualListGetRenderSlotsPatched = false
 
 // SortableJS/Vue.Draggable + tangbc/vue-virtual-scroll-list.
+// この子はDraggableを子どもにもつVirtualListをラッピングしている
+// VirtualListがDraggableを子どもに持てるように、まだ適用前であれば
+// この子はVirtualListの描画関連のメソッドにMonkey-patchを適用している
 @Component
 export default class DraggableVirtualList<T> extends Vue {
   @Prop({ default: () => Draggable }) draggableCtor!: IDraggable
-
   @Prop({ default: () => VirtualList }) virtualListCtor!: IVirtualList
-
-  @Prop() keeps!: number
-  @Prop() dataKey!: string
-  @Prop() dataSources!: Array<T>
-  @Prop() dataComponent!: VueConstructor
-  @Prop() size: number
 
   @Prop() value!: Array<T>;
 
@@ -55,18 +51,11 @@ export default class DraggableVirtualList<T> extends Vue {
   }
 
   public render(h: CreateElement) {
-    const { keeps, dataKey, dataSources, dataComponent, size } = this
-
     return h(this.virtualListCtor, {
-      props: {
-        keeps,
-        dataKey,
-        dataSources,
-        dataComponent,
-        size,
-      },
+      props: this.$props,
+      attrs: this.$attrs,
       on: {
-        // Draggableのinputイベントをプロパゲートする
+        // VirtualListのinputイベントをプロパゲートする
         input: this.$emit.bind(this, 'input'),
       }
     })
@@ -80,10 +69,6 @@ function patchVirtualListGetRenderSlots(
   VirtualList: IVirtualList,
   Draggable: IDraggable) {
   const { getRenderSlots: original } = VirtualList.options.methods
-
-  // TODO: VirtualList と draggable を直接いじくる
-  // コンポーネントで包む必要ないのでは？どうせ汚ないことしかしていないんだし
-  // 両者ともexternalにできる？？
 
   function patched(h: CreateElement) {
     const virtualList = this
@@ -120,17 +105,11 @@ function patchVirtualListGetRenderSlots(
             }
           }
         },
-        // FIXME: なんだこれ、やるならもらった attr 使え
-        attrs: {
-          group: 'phrase-list'
-        }
+        attrs: virtualList.$attrs
       }, slots)
     ]
   }
 
-  // 我々はDraggableがinputイベントでもらえる、今見えているDOMに基づくnewListの
-  // かわりに、Draggableのchangeイベントでもらえる添字を用いて仮想リスト向けの
-  // newListを作成しこれをinputイベントでemitする
   function onMoved(evt: DraggableMoveEvent) {
     const virtualList = this
     const { start } = virtualList.range
@@ -145,11 +124,14 @@ function patchVirtualListGetRenderSlots(
     this.$emit('input', newList);
   }
 
+  // TODO: 継承にする、prototypeなんかいじんじゃねーよ
+
   function onAdded(e: any) {
     const virtualList = this
     const { start } = virtualList.range
     const { element, newIndex } = e.added
     const newList = [...(virtualList as any).dataSources];
+    console.log(element)
 
     newList.splice(start + newIndex, 0, element);
 
