@@ -63,8 +63,8 @@
           <draggable-virtual-list
             class="phrase-list"
             v-model="items"
-            :size="48"
-            :keeps="10"
+            :size="50"
+            :keeps="20"
             :data-key="'id'"
             :data-sources="items"
             :data-component="Item"
@@ -80,8 +80,8 @@
             class="phrase-list"
             group="phrase-list"
             v-model="items2"
-            :size="48"
-            :keeps="10"
+            :size="50"
+            :keeps="20"
             :data-key="'id'"
             :data-sources="items2"
             :data-component="Item"
@@ -92,8 +92,8 @@
             class="phrase-list"
             group="phrase-list"
             v-model="items3"
-            :size="48"
-            :keeps="10"
+            :size="50"
+            :keeps="20"
             :data-key="'id'"
             :data-sources="items3"
             :data-component="Item"
@@ -136,7 +136,7 @@
         },
         data() {
           return {
-            items: generateItems(50),
+            items: generateItems(10000),
             items2: generateItems(100),
             items3: generateItems(50),
             Item
