@@ -1,5 +1,20 @@
 #+TITLE: vue-draggable-virtual-scroll-list
 
+* Description
+
 [[https://github.com/SortableJS/Vue.Draggable][SortableJS/Vue.Draggable]] :zap: + [[https://github.com/tangbc/vue-virtual-scroll-list][tangbc/vue-virtual-scroll-list]] :star2:
 
 [[images/screenshot.gif]]
+
+* Usage
+TBD
+
+* TODOs
++ Add unit test.
++ Prevent monkey-patching VirtualList.
++ Remove `any'.
++ Update comments.
++ Update documents.
+
+* License
+[[LICENSE][MIT License.]]
