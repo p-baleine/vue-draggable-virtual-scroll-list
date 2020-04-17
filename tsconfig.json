@@ -9,6 +9,7 @@
     "moduleResolution": "node",
     "lib": [
       "es2019",
+      "esnext.array",
       "dom"
     ],
     "experimentalDecorators": true,
@@ -16,6 +17,8 @@
   },
   "files": [
     "src/index.ts",
+    "src/broker/index.ts",
+    "src/broker/policy.ts",
     "types/vue-virtual-scroll-list.d.ts"
   ]
 }
