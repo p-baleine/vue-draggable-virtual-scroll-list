@@ -10,7 +10,6 @@
 TBD
 
 * TODOs
-+ Add unit test.
 + Prevent monkey-patching VirtualList.
 + Remove `any'.
 + Update comments.
