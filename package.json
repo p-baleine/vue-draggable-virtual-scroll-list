@@ -2,16 +2,15 @@
   "name": "vue-draggable-virtual-scroll-list",
   "version": "0.0.1",
   "description": "SortableJS/Vue.Draggable + tangbc/vue-virtual-scroll-list",
-  "main": "index.js",
+  "main": "dist/bundle.js",
   "scripts": {
-    "build": "tsc --build tsconfig.json && webpack --config webpack.config.js",
-    "watch": "webpack --watch --config webpack.config.js",
+    "build": "tsc --build tsconfig.json && webpack --config webpack.production.js",
+    "watch": "webpack --watch --config webpack.development.js",
     "test": "jest"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "vue": "^2.6.11",
     "vue-property-decorator": "^8.4.1",
     "vue-virtual-scroll-list": "^2.0.3",
     "vuedraggable": "^2.23.2"
@@ -33,6 +32,14 @@
     "typescript": "^3.8.3",
     "vue-template-compiler": "^2.6.11",
     "webpack": "^4.42.1",
-    "webpack-cli": "^3.3.11"
-  }
+    "webpack-cli": "^3.3.11",
+    "webpack-merge": "^4.2.2"
+  },
+  "peerDependencies": {
+    "vue": "^2.6.11"
+  },
+  "files": [
+    "dist",
+    "src"
+  ]
 }

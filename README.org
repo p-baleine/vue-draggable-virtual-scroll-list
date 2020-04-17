@@ -10,7 +10,7 @@
 TBD
 
 * TODOs
-+ Prevent monkey-patching VirtualList.
++ 他のプロジェクトでつかってみる
 + Remove `any'.
 + Update comments.
 + Update documents.

@@ -2,8 +2,6 @@ const path = require('path');
 
 module.exports = {
   entry: './src/index.ts',
-  mode: process.env.NODE_ENV || 'production',
-  devtool: 'inline-source-map',
   module: {
     rules: [
       {
@@ -19,11 +17,16 @@ module.exports = {
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
-    library: ['DraggableVirtualList'],
+    library: 'DraggableVirtualList',
     libraryExport: 'default',
-    libraryTarget: 'var',
+    libraryTarget: 'umd',
   },
   externals: {
-    vue: 'Vue',
-  }
+    vue: {
+      commonjs: 'vue',
+      commonjs2: 'vue',
+      amd: 'vue',
+      root: 'Vue',
+    },
+  },
 };
