@@ -28,9 +28,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+import Draggable from 'vuedraggable';
+import VirtualList from 'vue-virtual-scroll-list';
 import { Vue, Component, Prop } from 'vue-property-decorator';
-import Broker from './broker';
+import createBroker from './broker';
+import Policy from './broker/policy';
 import { sortableEventHandlers } from './broker';
+var Broker = createBroker(Draggable, VirtualList, Policy);
 // SortableJS/Vue.Draggable + tangbc/vue-virtual-scroll-list.
 var DraggableVirtualList = /** @class */ (function (_super) {
     __extends(DraggableVirtualList, _super);
@@ -43,7 +47,7 @@ var DraggableVirtualList = /** @class */ (function (_super) {
             attrs: this.$attrs,
             on: __assign({ 
                 // Propagate VirtualList's input event.
-                input: this.$emit.bind(this, 'input') }, sortableEventHandlers(this))
+                input: this.$emit.bind(this, 'input') }, sortableEventHandlers(this)),
         });
     };
     __decorate([

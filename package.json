@@ -22,7 +22,6 @@
     "@babel/preset-env": "^7.9.5",
     "@babel/preset-typescript": "^7.9.0",
     "@types/jest": "^25.2.1",
-    "@types/vuedraggable": "^2.23.0",
     "@vue/test-utils": "^1.0.0-beta.33",
     "babel-jest": "^25.3.0",
     "jest": "^25.3.0",

@@ -9,16 +9,35 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
-import Draggable from 'vuedraggable';
-import VirtualList from 'vue-virtual-scroll-list';
-import Policy from './policy';
-export var draggableEvents = [
-    'moved', 'added', 'removed'
-];
-export var sortableEvents = [
-    'start', 'add', 'remove', 'update', 'end', 'choose',
-    'unchoose', 'sort', 'filter', 'clone'
-];
+export var SortableEvents;
+(function (SortableEvents) {
+    SortableEvents[SortableEvents["start"] = 0] = "start";
+    SortableEvents[SortableEvents["add"] = 1] = "add";
+    SortableEvents[SortableEvents["remove"] = 2] = "remove";
+    SortableEvents[SortableEvents["update"] = 3] = "update";
+    SortableEvents[SortableEvents["end"] = 4] = "end";
+    SortableEvents[SortableEvents["choose"] = 5] = "choose";
+    SortableEvents[SortableEvents["unchoose"] = 6] = "unchoose";
+    SortableEvents[SortableEvents["sort"] = 7] = "sort";
+    SortableEvents[SortableEvents["filter"] = 8] = "filter";
+    SortableEvents[SortableEvents["clone"] = 9] = "clone";
+})(SortableEvents || (SortableEvents = {}));
+var sortableEvents = Object.values(SortableEvents)
+    .filter(function (x) { return typeof x === 'string'; });
+var draggableEvents = ['moved', 'added', 'removed'];
+// Inherits VirtualList and overrides getRenderSlots.
+export default function createBroker(Draggable, VirtualList, PolicyCtr) {
+    return VirtualList.extend({
+        inject: {
+            Draggable: { from: 'Draggable', default: function () { return Draggable; } },
+            VirtualList: { from: 'VirtualList', default: function () { return VirtualList; } },
+            Policy: { from: 'Policy', default: function () { return PolicyCtr; } },
+        },
+        methods: {
+            getRenderSlots: getRenderSlots,
+        },
+    });
+}
 // This function will override VirtualList.options.methods.getRenderSlots.
 //
 // Returns the result of VirtualList.options.methods.getRenderSlots
@@ -26,6 +45,7 @@ export var sortableEvents = [
 // Draggable's change events would be converted to input events and emitted.
 function getRenderSlots(h) {
     var _this = this;
+    var _a = this, Draggable = _a.Draggable, VirtualList = _a.VirtualList, Policy = _a.Policy;
     var original = VirtualList.options.methods.getRenderSlots;
     var slots = original.call(this, h);
     var policy = new Policy(this.dataKey, this.dataSources, this.range);
@@ -43,21 +63,15 @@ function getRenderSlots(h) {
                         _this.$emit('input', policy.updatedSources(e));
                     }
                 } }, sortableEventHandlers(this)),
-            attrs: this.$attrs
-        }, slots)
+            attrs: this.$attrs,
+        }, slots),
     ];
 }
-// Inherits VirtualList and overrides getRenderSlots.
-export default VirtualList.extend({
-    methods: {
-        getRenderSlots: getRenderSlots
-    }
-});
 // Returns handlers which propagate sortable's events.
 export function sortableEventHandlers(context) {
     return sortableEvents.reduce(function (acc, eventName) {
         var _a;
-        return (__assign(__assign({}, acc), (_a = {}, _a[eventName] = context.$emit.bind(context, eventName.toLowerCase()), _a)));
+        return (__assign(__assign({}, acc), (_a = {}, _a[eventName] = context.$emit.bind(context, eventName), _a)));
     }, {});
 }
 //# sourceMappingURL=index.js.map
