@@ -8,7 +8,7 @@
 
 Vue component who put [[https://github.com/SortableJS/Vue.Draggable][SortableJS/Vue.Draggable]] and
 [[https://github.com/tangbc/vue-virtual-scroll-list][tangbc/vue-virtual-scroll-list]] together and allow drag-and-drop and big amount
-data list with high scroll performance
+data list with high scroll performance.
 
 [[images/screenshot.gif]]
 
