@@ -20,6 +20,7 @@
     "src/index.ts",
     "src/broker/index.ts",
     "src/broker/policy.ts",
+    "types/vuedraggable.d.ts",
     "types/vue-virtual-scroll-list.d.ts"
   ]
 }
