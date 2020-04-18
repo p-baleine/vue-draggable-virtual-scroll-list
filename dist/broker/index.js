@@ -21,9 +21,9 @@ export var sortableEvents = [
 ];
 // This function will override VirtualList.options.methods.getRenderSlots.
 //
-// VirtualList.options.methods.getRenderSlotsの返却するslotsをDraggableで
-// ラップして返す。また、draggableのchangeイベントをlistenして、これをinputイベントに
-// 変換してemitする。
+// Returns the result of VirtualList.options.methods.getRenderSlots
+// which would be wrapped by Draggable.
+// Draggable's change events would be converted to input events and emitted.
 function getRenderSlots(h) {
     var _this = this;
     var original = VirtualList.options.methods.getRenderSlots;
@@ -33,9 +33,12 @@ function getRenderSlots(h) {
         h(Draggable, {
             props: {
                 value: this.dataSources,
+                // policy will find the real item from x.
                 clone: function (x) { return policy.findRealItem(x); },
             },
-            on: __assign({ change: function (e) {
+            on: __assign({ 
+                // Convert Draggable's change events to input events.
+                change: function (e) {
                     if (draggableEvents.some(function (n) { return n in e; })) {
                         _this.$emit('input', policy.updatedSources(e));
                     }
@@ -44,12 +47,13 @@ function getRenderSlots(h) {
         }, slots)
     ];
 }
+// Inherits VirtualList and overrides getRenderSlots.
 export default VirtualList.extend({
     methods: {
         getRenderSlots: getRenderSlots
     }
 });
-// createElement の引数向けに、sortableのイベントを伝播するハンドラ群を返す
+// Returns handlers which propagate sortable's events.
 export function sortableEventHandlers(context) {
     return sortableEvents.reduce(function (acc, eventName) {
         var _a;

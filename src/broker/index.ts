@@ -5,17 +5,17 @@ import { Vue } from 'vue-property-decorator'
 
 import Policy from './policy'
 
-interface DraggableEvent extends Event {
+interface DraggableEvent<T> extends Event {
   moved?: {
     oldIndex: number
     newIndex: number
   }
   added?: {
-    element: any
+    element: T
     newIndex: number
   }
   removed?: {
-    element: any
+    element: T
     oldIndex: number
   }
 }
@@ -28,10 +28,10 @@ export const sortableEvents = [
 
 // This function will override VirtualList.options.methods.getRenderSlots.
 //
-// VirtualList.options.methods.getRenderSlotsの返却するslotsをDraggableで
-// ラップして返す。また、draggableのchangeイベントをlistenして、これをinputイベントに
-// 変換してemitする。
-function getRenderSlots(h: CreateElement) {
+// Returns the result of VirtualList.options.methods.getRenderSlots
+// which would be wrapped by Draggable.
+// Draggable's change events would be converted to input events and emitted.
+function getRenderSlots<T extends Record<string, T>>(h: CreateElement) {
   const { getRenderSlots: original } = VirtualList.options.methods
   const slots = original.call(this, h)
   const policy = new Policy(this.dataKey, this.dataSources, this.range)
@@ -40,14 +40,17 @@ function getRenderSlots(h: CreateElement) {
     h(Draggable, {
       props: {
         value: this.dataSources,
-        clone: (x: any) => policy.findRealItem(x),
+        // policy will find the real item from x.
+        clone: (x: T) => policy.findRealItem(x),
       },
       on: {
-        change: (e: DraggableEvent) => {
+        // Convert Draggable's change events to input events.
+        change: (e: DraggableEvent<T>) => {
           if (draggableEvents.some(n => n in e)) {
             this.$emit('input', policy.updatedSources(e));
           }
         },
+        // Propagate Sortable events.
         ...sortableEventHandlers(this),
       },
       attrs: this.$attrs
@@ -55,13 +58,14 @@ function getRenderSlots(h: CreateElement) {
   ]
 }
 
+// Inherits VirtualList and overrides getRenderSlots.
 export default VirtualList.extend({
   methods: {
     getRenderSlots
   }
 })
 
-// createElement の引数向けに、sortableのイベントを伝播するハンドラ群を返す
+// Returns handlers which propagate sortable's events.
 export function sortableEventHandlers(context: Vue) {
   return sortableEvents.reduce((acc, eventName) => ({
     ...acc,
