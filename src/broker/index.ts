@@ -32,6 +32,7 @@ export enum SortableEvents {
   choose, unchoose, sort, filter, clone,
 }
 
+// TODO: Move DraggableEvent to policy.ts as Instructions.
 export interface DraggableEvent<T> extends Event {
   moved?: {
     oldIndex: number;

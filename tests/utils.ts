@@ -24,5 +24,5 @@ export function generateItems(length = 100) {
 }
 
 // https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript#answer-47496558
-const name = () => (
+export const name = () => (
   [...Array(12)].map(() => Math.random().toString(36)[2]).join(''))
