@@ -105,14 +105,52 @@ describe('two-lists', () => {
       })
     })
 
-    describe.skip('移動先を10個分スクロールしたとき', () => {
-      it('移動元で新しいリストで input イベントを emit すること')
-      it('移動先で新しいリストで input イベントを emit すること')
+    describe('移動先を10個分スクロールしたとき', () => {
+      it('移動元で新しいリストで input イベントを emit すること', async () => {
+        await triggerScrollEvents(rhs, 10)
+        const lhsIndex = 10
+        const rhsIndex = 2
+        await swapBetweenLists(lhsIndex, rhsIndex)
+        const newValue = lhs.wrapper.emitted().input[0][0]
+        expect(newValue[lhsIndex - 1]).toEqual(lhs.items[lhsIndex - 1])
+        expect(newValue[lhsIndex]).toEqual(lhs.items[lhsIndex + 1])
+      })
+
+      it('移動先で新しいリストで input イベントを emit すること', async () => {
+        await triggerScrollEvents(rhs, 10)
+        const lhsIndex = 10
+        const rhsIndex = 2
+        await swapBetweenLists(lhsIndex, rhsIndex)
+        const newValue = rhs.wrapper.emitted().input[0][0]
+        expect(newValue[rhsIndex + 10 - 1]).toEqual(rhs.items[rhsIndex + 10 - 1])
+        expect(newValue[rhsIndex + 10]).toEqual(lhs.items[lhsIndex])
+        expect(newValue[rhsIndex + 10 + 1]).toEqual(rhs.items[rhsIndex + 10])
+      })
     })
 
-    describe.skip('移動元と移動先を10個分スクロールしたとき', () => {
-      it('移動元で新しいリストで input イベントを emit すること')
-      it('移動先で新しいリストで input イベントを emit すること')
+    describe('移動元と移動先を10個分スクロールしたとき', () => {
+      it('移動元で新しいリストで input イベントを emit すること', async () => {
+        await triggerScrollEvents(lhs, 10)
+        await triggerScrollEvents(rhs, 10)
+        const lhsIndex = 10
+        const rhsIndex = 2
+        await swapBetweenLists(lhsIndex, rhsIndex)
+        const newValue = lhs.wrapper.emitted().input[0][0]
+        expect(newValue[lhsIndex + 10 - 1]).toEqual(lhs.items[lhsIndex + 10 - 1])
+        expect(newValue[lhsIndex + 10]).toEqual(lhs.items[lhsIndex + 10 + 1])
+      })
+
+      it('移動先で新しいリストで input イベントを emit すること', async () => {
+        await triggerScrollEvents(lhs, 10)
+        await triggerScrollEvents(rhs, 10)
+        const lhsIndex = 10
+        const rhsIndex = 2
+        await swapBetweenLists(lhsIndex, rhsIndex)
+        const newValue = rhs.wrapper.emitted().input[0][0]
+        expect(newValue[rhsIndex + 10 - 1]).toEqual(rhs.items[rhsIndex + 10 - 1])
+        expect(newValue[rhsIndex + 10]).toEqual(lhs.items[lhsIndex + 10])
+        expect(newValue[rhsIndex + 10 + 1]).toEqual(rhs.items[rhsIndex + 10])
+      })
     })
   })
 })
