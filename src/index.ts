@@ -2,6 +2,7 @@ import { CreateElement } from 'vue';
 import { Vue, Component, Prop } from 'vue-property-decorator'
 
 import Broker from './broker'
+import { sortableEventHandlers } from './broker'
 
 // SortableJS/Vue.Draggable + tangbc/vue-virtual-scroll-list.
 @Component
@@ -13,8 +14,11 @@ export default class DraggableVirtualList<T> extends Vue {
       props: this.$props,
       attrs: this.$attrs,
       on: {
-        // Propagate VirtualLists' input event.
+        // Propagate VirtualList's input event.
         input: this.$emit.bind(this, 'input'),
+
+        // Propagate draggable.sortable's events.
+        ...sortableEventHandlers(this),
       }
     })
   }
