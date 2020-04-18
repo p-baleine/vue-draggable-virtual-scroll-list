@@ -1,25 +1,27 @@
 type InstructionName = 'moved' | 'added' | 'removed'
 
-// VirtualListとDraggableを仲介する際の方針を表現する
-export default class Policy<T> {
+// This class is responsible for ensuring the policies between
+// VirtualList and Draggable.
+export default class Policy<T extends Record<string, T>> {
   constructor(
     private dataKey: string,
     private dataSources: Array<T>,
     private visibleRange: { start: number }
   ) {}
 
-  // Draggableによってドラッグされた item の実データを返す
-  public findRealItem(item: any) {
+  // Find the real item from item.
+  public findRealItem(item: T) {
     const idx = this.dataSources.findIndex(
-      (x: any) => x[this.dataKey] === item[this.dataKey])
+      (x: T) => x[this.dataKey] === item[this.dataKey])
     return this.dataSources[this.visibleRange.start + idx]
   }
 
-  // 更新指示に従った際の、更新語のdataSourcesを新しく作って返す
+  // Returns a new list which is created based on
+  // the update `instruction`.
   public updatedSources(
     instruction: {
       [name in InstructionName]?:
-      { oldIndex?: number, newIndex?: number, element?: any } }) {
+      { oldIndex?: number, newIndex?: number, element?: T } }) {
     const newList = [...this.dataSources];
 
     if ('moved' in instruction) {

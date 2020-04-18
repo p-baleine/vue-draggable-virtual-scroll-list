@@ -5,20 +5,22 @@ var __spreadArrays = (this && this.__spreadArrays) || function () {
             r[k] = a[j];
     return r;
 };
-// VirtualListとDraggableを仲介する際の方針を表現する
+// This class is responsible for ensuring the policies between
+// VirtualList and Draggable.
 var Policy = /** @class */ (function () {
     function Policy(dataKey, dataSources, visibleRange) {
         this.dataKey = dataKey;
         this.dataSources = dataSources;
         this.visibleRange = visibleRange;
     }
-    // Draggableによってドラッグされた item の実データを返す
+    // Find the real item from item.
     Policy.prototype.findRealItem = function (item) {
         var _this = this;
         var idx = this.dataSources.findIndex(function (x) { return x[_this.dataKey] === item[_this.dataKey]; });
         return this.dataSources[this.visibleRange.start + idx];
     };
-    // 更新指示に従った際の、更新語のdataSourcesを新しく作って返す
+    // Returns a new list which is created based on
+    // the update `instruction`.
     Policy.prototype.updatedSources = function (instruction) {
         var newList = __spreadArrays(this.dataSources);
         if ('moved' in instruction) {
