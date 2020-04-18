@@ -116,5 +116,25 @@ describe('simple', () => {
         })
       })
     })
+
+    describe('Events', () => {
+      describe('start', () => {
+        it('should propagate Sortable\'s start event', async () => {
+          const dragged = wrapper.findAll('.phrase').at(3)
+          const item = dragged.element.parentNode
+          const event = { item }
+          // 横着
+          const sortable = draggableWrapper.vm._sortable
+          sortable.options.onStart.call(sortable, event)
+          await Vue.nextTick()
+
+          const startEventEmittedFromDraggable =
+            draggableWrapper.emitted().start[0][0]
+
+          expect(wrapper.emitted().start[0][0])
+            .toBe(startEventEmittedFromDraggable)
+        })
+      })
+    })
   })
 })

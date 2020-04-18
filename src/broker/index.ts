@@ -1,6 +1,7 @@
 import { CreateElement } from 'vue';
 import Draggable from 'vuedraggable'
 import VirtualList from 'vue-virtual-scroll-list'
+import { Vue } from 'vue-property-decorator'
 
 import Policy from './policy'
 
@@ -19,7 +20,11 @@ interface DraggableEvent extends Event {
   }
 }
 
-const draggableEvents = ['moved', 'added', 'removed']
+export const draggableEvents = [
+  'moved', 'added', 'removed']
+export const sortableEvents = [
+  'start', 'add', 'remove', 'update', 'end', 'choose',
+  'unchoose', 'sort', 'filter', 'clone']
 
 // This function will override VirtualList.options.methods.getRenderSlots.
 //
@@ -42,7 +47,8 @@ function getRenderSlots(h: CreateElement) {
           if (draggableEvents.some(n => n in e)) {
             this.$emit('input', policy.updatedSources(e));
           }
-        }
+        },
+        ...sortableEventHandlers(this),
       },
       attrs: this.$attrs
     }, slots)
@@ -54,3 +60,11 @@ export default VirtualList.extend({
     getRenderSlots
   }
 })
+
+// createElement の引数向けに、sortableのイベントを伝播するハンドラ群を返す
+export function sortableEventHandlers(context: Vue) {
+  return sortableEvents.reduce((acc, eventName) => ({
+    ...acc,
+    [eventName]: context.$emit.bind(context, eventName.toLowerCase())
+  }), {})
+}
