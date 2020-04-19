@@ -1,18 +1,24 @@
-declare type InstructionName = 'moved' | 'added' | 'removed';
-export default class Policy<T extends Record<string, T>> {
+export interface Instruction<T> {
+    moved?: {
+        oldIndex: number;
+        newIndex: number;
+    };
+    added?: {
+        element: T;
+        newIndex: number;
+    };
+    removed?: {
+        element: T;
+        oldIndex: number;
+    };
+}
+export default class Policy<T> {
     private dataKey;
     private dataSources;
     private visibleRange;
-    constructor(dataKey: string, dataSources: Array<T>, visibleRange: {
+    constructor(dataKey: keyof T, dataSources: Array<T>, visibleRange: {
         start: number;
     });
     findRealItem(item: T): T;
-    updatedSources(instruction: {
-        [name in InstructionName]?: {
-            oldIndex?: number;
-            newIndex?: number;
-            element?: T;
-        };
-    }): T[];
+    updatedSources(instruction: Instruction<T>): T[];
 }
-export {};

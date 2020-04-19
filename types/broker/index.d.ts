@@ -1,6 +1,5 @@
-import { CreateElement, VueConstructor } from 'vue';
+import { VueConstructor } from 'vue';
 import { Vue } from 'vue-property-decorator';
-import Policy from './policy';
 export interface IDraggable<T> extends VueConstructor {
     props: {
         value: Array<T>;
@@ -44,9 +43,5 @@ export interface DraggableEvent<T> extends Event {
         oldIndex: number;
     };
 }
-export default function createBroker<T>(Draggable: IDraggable<T>, VirtualList: IVirtualList<T>, PolicyCtr: typeof Policy): import("vue/types/vue").ExtendedVue<Vue, unknown, {
-    getRenderSlots: typeof getRenderSlots;
-}, unknown, Record<never, any>>;
-declare function getRenderSlots<T extends Record<string, T>>(h: CreateElement): import("vue").VNode[];
+export default function createBroker<T>(): any;
 export declare function sortableEventHandlers(context: Vue): {};
-export {};

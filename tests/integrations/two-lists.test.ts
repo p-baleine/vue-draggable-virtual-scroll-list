@@ -76,7 +76,7 @@ describe('two-lists', () => {
 
     async function triggerScrollEvents(lst: any, offset: number) {
       const { wrapper, propsData } = lst
-      const virtualList = wrapper.find({ name: 'virtual-list' })
+      const virtualList = wrapper.find({ name: 'broker' })
       virtualList.vm.setScrollOffset(propsData.size * offset)
       virtualList.find({ ref: 'root' }).trigger('scroll')
       await Vue.nextTick()

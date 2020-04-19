@@ -45,7 +45,7 @@ describe('simple', () => {
   })
 
   async function triggerScrollEvents(offset: number) {
-    const virtualList = wrapper.find({ name: 'virtual-list' })
+    const virtualList = wrapper.find({ name: 'broker' })
     virtualList.vm.setScrollOffset(propsData.size * offset)
     // VirtualListがlistenしている `&scroll' の `&' って何だろう？
     // https://github.com/tangbc/vue-virtual-scroll-list/blob/3f5f2e03335b7ecc921ae704f0f3429840032036/src/index.js#L186

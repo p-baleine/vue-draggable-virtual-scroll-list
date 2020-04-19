@@ -1,10 +1,23 @@
-type InstructionName = 'moved' | 'added' | 'removed';
+export interface Instruction<T> {
+  moved?: {
+    oldIndex: number;
+    newIndex: number;
+  };
+  added?: {
+    element: T;
+    newIndex: number;
+  };
+  removed?: {
+    element: T;
+    oldIndex: number;
+  };
+}
 
 // This class is responsible for ensuring the policies between
 // VirtualList and Draggable.
-export default class Policy<T extends Record<string, T>> {
+export default class Policy<T> {
   constructor(
-    private dataKey: string,
+    private dataKey: keyof T,
     private dataSources: Array<T>,
     private visibleRange: { start: number },
   ) {}
@@ -18,10 +31,7 @@ export default class Policy<T extends Record<string, T>> {
 
   // Returns a new list which is created based on
   // the update `instruction`.
-  public updatedSources(
-    instruction: {
-      [name in InstructionName]?:
-      { oldIndex?: number, newIndex?: number, element?: T } }) {
+  public updatedSources(instruction: Instruction<T>) {
     const newList = [...this.dataSources];
 
     if ('moved' in instruction) {
@@ -41,4 +51,3 @@ export default class Policy<T extends Record<string, T>> {
     return newList;
   }
 }
-

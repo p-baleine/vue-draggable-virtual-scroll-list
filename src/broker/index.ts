@@ -1,7 +1,7 @@
-import { CreateElement, VueConstructor } from 'vue';
-import { Vue } from 'vue-property-decorator';
+import { CreateElement, VueConstructor, VNode } from 'vue';
+import { Vue, Component, Inject, Prop } from 'vue-property-decorator';
 
-import Policy from './policy';
+import Policy, { Instruction } from './policy';
 
 export interface IDraggable<T> extends VueConstructor {
   props: {
@@ -15,16 +15,10 @@ export interface IDraggable<T> extends VueConstructor {
   $emit(event: keyof SortableEvents, e: Event): void;
 }
 
-export interface IVirtualList<T> extends VueConstructor {
-  props: {
-    // Properties of vue-virtual-scroll-list
-    // See: https://github.com/tangbc/vue-virtual-scroll-list#props-type
-    size?: number;
-    keeps: number;
-    dataKey: string;
-    dataSources: Array<T>;
-    dataComponent: Vue;
-  };
+export interface IVirtualList extends VueConstructor {
+  options: { methods: {
+    getRenderSlots(h: CreateElement): Array<VNode>,
+  } };
 }
 
 export enum SortableEvents {
@@ -32,74 +26,64 @@ export enum SortableEvents {
   choose, unchoose, sort, filter, clone,
 }
 
-// TODO: Move DraggableEvent to policy.ts as Instructions.
-export interface DraggableEvent<T> extends Event {
-  moved?: {
-    oldIndex: number;
-    newIndex: number;
-  };
-  added?: {
-    element: T;
-    newIndex: number;
-  };
-  removed?: {
-    element: T;
-    oldIndex: number;
-  };
-}
+type DraggableEvent<T> = Instruction<T> & Event;
 
 const sortableEvents = Object.values(SortableEvents)
   .filter(x => typeof x === 'string');
 const draggableEvents = ['moved', 'added', 'removed'];
 
-// Inherits VirtualList and overrides getRenderSlots.
-export default function createBroker<T>(
-  Draggable: IDraggable<T>,
-  VirtualList: IVirtualList<T>,
-  PolicyCtr: typeof Policy) {
-  return VirtualList.extend({
-    inject: {
-      Draggable: { from: 'Draggable', default: () => Draggable },
-      VirtualList: { from: 'VirtualList', default: () => VirtualList },
-      Policy: { from: 'Policy', default: () => PolicyCtr },
-    },
-    methods: {
-      getRenderSlots,
-    },
-  });
-}
+// A fuctory function which will return DraggableVirtualList.
+export default function createBroker<T>(VirtualList: IVirtualList) {
+  @Component
+  class Broker<T> extends VirtualList {
+    // Properties of vue-virtual-scroll-list
+    // See: https://github.com/tangbc/vue-virtual-scroll-list#props-type
+    @Prop() size?: number;
+    @Prop() keeps!: number;
+    @Prop() dataKey!: keyof T;
+    @Prop() dataSources!: Array<T>;
+    @Prop() dataComponent!: Vue;
 
-// This function will override VirtualList.options.methods.getRenderSlots.
-//
-// Returns the result of VirtualList.options.methods.getRenderSlots
-// which would be wrapped by Draggable.
-// Draggable's change events would be converted to input events and emitted.
-function getRenderSlots<T extends Record<string, T>>(h: CreateElement) {
-  const { Draggable, VirtualList, Policy } = this;
-  const { getRenderSlots: original } = VirtualList.options.methods;
-  const slots = original.call(this, h);
-  const policy = new Policy(this.dataKey, this.dataSources, this.range);
+    @Inject() Draggable!: IDraggable<T>;
+    @Inject() Policy!: typeof Policy;
 
-  return [
-    h(Draggable, {
-      props: {
-        value: this.dataSources,
-        // policy will find the real item from x.
-        clone: (x: T) => policy.findRealItem(x),
-      },
-      on: {
-        // Convert Draggable's change events to input events.
-        change: (e: DraggableEvent<T>) => {
-          if (draggableEvents.some(n => n in e)) {
-            this.$emit('input', policy.updatedSources(e));
-          }
-        },
-        // Propagate Sortable events.
-        ...sortableEventHandlers(this),
-      },
-      attrs: this.$attrs,
-    }, slots),
-  ];
+    range: { start: number };
+
+    // Override
+    //
+    // Return the result of VirtualList.options.methods.getRenderSlots
+    // which would be wrapped by Draggable.
+    // Draggable's change events would be converted to input
+    // events and emitted.
+    getRenderSlots(h: CreateElement) {
+      const { Draggable, Policy } = this;
+      const slots = VirtualList.options.methods.getRenderSlots.call(this, h);
+      const policy = new Policy(this.dataKey, this.dataSources, this.range);
+
+      return [
+        h(Draggable, {
+          props: {
+            value: this.dataSources,
+            // policy will find the real item from x.
+            clone: (x: T) => policy.findRealItem(x),
+          },
+          on: {
+            // Convert Draggable's change events to input events.
+            change: (e: DraggableEvent<T>) => {
+              if (draggableEvents.some(n => n in e)) {
+                this.$emit('input', policy.updatedSources(e));
+              }
+            },
+            // Propagate Sortable events.
+            ...sortableEventHandlers(this),
+          },
+          attrs: this.$attrs,
+        }, slots),
+      ];
+    }
+  }
+
+  return Broker;
 }
 
 // Returns handlers which propagate sortable's events.
