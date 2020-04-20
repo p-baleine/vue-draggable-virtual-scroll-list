@@ -36,7 +36,7 @@ type DraggableEvent<T> = Instruction<T> & Event;
 const sortableEvents = Object.values(SortableEvents)
   .filter(x => typeof x === 'string');
 
-// A fuctory function which will return DraggableVirtualList.
+// A fuctory function which will return DraggableVirtualList constructor.
 export default function createBroker(VirtualList: IVirtualList): IVirtualList {
   @Component
   class Broker<T> extends VirtualList {
