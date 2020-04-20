@@ -12,6 +12,7 @@ export interface Instruction<T> {
         oldIndex: number;
     };
 }
+export declare const instructionNames: string[];
 export default class Policy<T> {
     private dataKey;
     private dataSources;

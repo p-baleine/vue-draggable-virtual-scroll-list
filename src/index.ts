@@ -7,7 +7,6 @@ import createBroker from './broker';
 import Policy from './broker/policy';
 import { sortableEventHandlers } from './broker';
 
-// const Broker = createBroker(Draggable, VirtualList, Policy)
 const Broker = createBroker(VirtualList)
 
 // SortableJS/Vue.Draggable + tangbc/vue-virtual-scroll-list.

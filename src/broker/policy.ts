@@ -13,6 +13,8 @@ export interface Instruction<T> {
   };
 }
 
+export const instructionNames = ['moved', 'added', 'removed'];
+
 // This class is responsible for ensuring the policies between
 // VirtualList and Draggable.
 export default class Policy<T> {

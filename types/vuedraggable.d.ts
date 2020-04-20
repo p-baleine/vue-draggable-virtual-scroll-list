@@ -3,7 +3,7 @@ declare module 'vuedraggable' {
   // See https://github.com/DefinitelyTyped/DefinitelyTyped
   import { VueConstructor } from 'vue';
 
-  interface DraggableConstructor extends VueConstructor {
+  export interface DraggableConstructor extends VueConstructor {
     props: any;
     data: () => any;
     watch: any;

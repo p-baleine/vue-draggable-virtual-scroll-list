@@ -1,5 +1,6 @@
-import { VueConstructor } from 'vue';
+import { CreateElement, VueConstructor, VNode } from 'vue';
 import { Vue } from 'vue-property-decorator';
+import { Instruction } from './policy';
 export interface IDraggable<T> extends VueConstructor {
     props: {
         value: Array<T>;
@@ -8,13 +9,11 @@ export interface IDraggable<T> extends VueConstructor {
     $emit(event: 'change', e: DraggableEvent<T>): void;
     $emit(event: keyof SortableEvents, e: Event): void;
 }
-export interface IVirtualList<T> extends VueConstructor {
-    props: {
-        size?: number;
-        keeps: number;
-        dataKey: string;
-        dataSources: Array<T>;
-        dataComponent: Vue;
+export interface IVirtualList extends VueConstructor {
+    options: {
+        methods: {
+            getRenderSlots(h: CreateElement): Array<VNode>;
+        };
     };
 }
 export declare enum SortableEvents {
@@ -29,19 +28,7 @@ export declare enum SortableEvents {
     filter = 8,
     clone = 9
 }
-export interface DraggableEvent<T> extends Event {
-    moved?: {
-        oldIndex: number;
-        newIndex: number;
-    };
-    added?: {
-        element: T;
-        newIndex: number;
-    };
-    removed?: {
-        element: T;
-        oldIndex: number;
-    };
-}
-export default function createBroker<T>(): any;
+declare type DraggableEvent<T> = Instruction<T> & Event;
+export default function createBroker(VirtualList: IVirtualList): IVirtualList;
 export declare function sortableEventHandlers(context: Vue): {};
+export {};

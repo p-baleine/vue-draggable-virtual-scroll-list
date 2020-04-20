@@ -5,6 +5,7 @@ var __spreadArrays = (this && this.__spreadArrays) || function () {
             r[k] = a[j];
     return r;
 };
+export var instructionNames = ['moved', 'added', 'removed'];
 // This class is responsible for ensuring the policies between
 // VirtualList and Draggable.
 var Policy = /** @class */ (function () {

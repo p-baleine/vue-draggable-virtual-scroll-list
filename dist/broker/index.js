@@ -1,3 +1,16 @@
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -9,6 +22,14 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+import { Component, Inject, Prop } from 'vue-property-decorator';
+import { instructionNames as draggableEvents } from './policy';
 export var SortableEvents;
 (function (SortableEvents) {
     SortableEvents[SortableEvents["start"] = 0] = "start";
@@ -24,48 +45,69 @@ export var SortableEvents;
 })(SortableEvents || (SortableEvents = {}));
 var sortableEvents = Object.values(SortableEvents)
     .filter(function (x) { return typeof x === 'string'; });
-var draggableEvents = ['moved', 'added', 'removed'];
-// Inherits VirtualList and overrides getRenderSlots.
-export default function createBroker(Draggable, VirtualList, PolicyCtr) {
-    return VirtualList.extend({
-        inject: {
-            Draggable: { from: 'Draggable', default: function () { return Draggable; } },
-            VirtualList: { from: 'VirtualList', default: function () { return VirtualList; } },
-            Policy: { from: 'Policy', default: function () { return PolicyCtr; } },
-        },
-        methods: {
-            getRenderSlots: getRenderSlots,
-        },
-    });
-}
-// This function will override VirtualList.options.methods.getRenderSlots.
-//
-// Returns the result of VirtualList.options.methods.getRenderSlots
-// which would be wrapped by Draggable.
-// Draggable's change events would be converted to input events and emitted.
-function getRenderSlots(h) {
-    var _this = this;
-    var _a = this, Draggable = _a.Draggable, VirtualList = _a.VirtualList, Policy = _a.Policy;
-    var original = VirtualList.options.methods.getRenderSlots;
-    var slots = original.call(this, h);
-    var policy = new Policy(this.dataKey, this.dataSources, this.range);
-    return [
-        h(Draggable, {
-            props: {
-                value: this.dataSources,
-                // policy will find the real item from x.
-                clone: function (x) { return policy.findRealItem(x); },
-            },
-            on: __assign({ 
-                // Convert Draggable's change events to input events.
-                change: function (e) {
-                    if (draggableEvents.some(function (n) { return n in e; })) {
-                        _this.$emit('input', policy.updatedSources(e));
-                    }
-                } }, sortableEventHandlers(this)),
-            attrs: this.$attrs,
-        }, slots),
-    ];
+// A fuctory function which will return DraggableVirtualList.
+export default function createBroker(VirtualList) {
+    var Broker = /** @class */ (function (_super) {
+        __extends(Broker, _super);
+        function Broker() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        // Override
+        //
+        // Return the result of VirtualList.options.methods.getRenderSlots
+        // which would be wrapped by Draggable.
+        // Draggable's change events would be converted to input
+        // events and emitted.
+        Broker.prototype.getRenderSlots = function (h) {
+            var _this = this;
+            var _a = this, Draggable = _a.Draggable, Policy = _a.Policy;
+            var slots = VirtualList.options.methods.getRenderSlots.call(this, h);
+            var policy = new Policy(this.dataKey, this.dataSources, this.range);
+            return [
+                h(Draggable, {
+                    props: {
+                        value: this.dataSources,
+                        // policy will find the real item from x.
+                        clone: function (x) { return policy.findRealItem(x); },
+                    },
+                    on: __assign({ 
+                        // Convert Draggable's change events to input events.
+                        change: function (e) {
+                            if (draggableEvents.some(function (n) { return n in e; })) {
+                                _this.$emit('input', policy.updatedSources(e));
+                            }
+                        } }, sortableEventHandlers(this)),
+                    attrs: this.$attrs,
+                }, slots),
+            ];
+        };
+        __decorate([
+            Prop()
+        ], Broker.prototype, "size", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "keeps", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "dataKey", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "dataSources", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "dataComponent", void 0);
+        __decorate([
+            Inject()
+        ], Broker.prototype, "Draggable", void 0);
+        __decorate([
+            Inject()
+        ], Broker.prototype, "Policy", void 0);
+        Broker = __decorate([
+            Component
+        ], Broker);
+        return Broker;
+    }(VirtualList));
+    return Broker;
 }
 // Returns handlers which propagate sortable's events.
 export function sortableEventHandlers(context) {

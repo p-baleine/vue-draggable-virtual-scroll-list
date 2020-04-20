@@ -1,7 +1,10 @@
 import { CreateElement, VueConstructor, VNode } from 'vue';
 import { Vue, Component, Inject, Prop } from 'vue-property-decorator';
 
-import Policy, { Instruction } from './policy';
+import PolicyCtor, {
+  Instruction,
+  instructionNames as draggableEvents
+} from './policy';
 
 export interface IDraggable<T> extends VueConstructor {
   props: {
@@ -16,9 +19,11 @@ export interface IDraggable<T> extends VueConstructor {
 }
 
 export interface IVirtualList extends VueConstructor {
-  options: { methods: {
-    getRenderSlots(h: CreateElement): Array<VNode>,
-  } };
+  options: {
+    methods: {
+      getRenderSlots(h: CreateElement): Array<VNode>,
+    }
+  };
 }
 
 export enum SortableEvents {
@@ -30,10 +35,9 @@ type DraggableEvent<T> = Instruction<T> & Event;
 
 const sortableEvents = Object.values(SortableEvents)
   .filter(x => typeof x === 'string');
-const draggableEvents = ['moved', 'added', 'removed'];
 
 // A fuctory function which will return DraggableVirtualList.
-export default function createBroker<T>(VirtualList: IVirtualList) {
+export default function createBroker(VirtualList: IVirtualList): IVirtualList {
   @Component
   class Broker<T> extends VirtualList {
     // Properties of vue-virtual-scroll-list
@@ -45,7 +49,7 @@ export default function createBroker<T>(VirtualList: IVirtualList) {
     @Prop() dataComponent!: Vue;
 
     @Inject() Draggable!: IDraggable<T>;
-    @Inject() Policy!: typeof Policy;
+    @Inject() Policy!: typeof PolicyCtor;
 
     range: { start: number };
 
