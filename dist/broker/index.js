@@ -29,7 +29,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 import { Component, Inject, Prop } from 'vue-property-decorator';
-import { instructionNames as draggableEvents } from './policy';
+import { instructionNames as draggableEvents } from './draggable-policy';
+import VirtualScrollListPolicy from './virtual-scroll-list-policy';
 export var SortableEvents;
 (function (SortableEvents) {
     SortableEvents[SortableEvents["start"] = 0] = "start";
@@ -45,12 +46,14 @@ export var SortableEvents;
 })(SortableEvents || (SortableEvents = {}));
 var sortableEvents = Object.values(SortableEvents)
     .filter(function (x) { return typeof x === 'string'; });
-// A fuctory function which will return DraggableVirtualList.
+// A fuctory function which will return DraggableVirtualList constructor.
 export default function createBroker(VirtualList) {
     var Broker = /** @class */ (function (_super) {
         __extends(Broker, _super);
         function Broker() {
-            return _super !== null && _super.apply(this, arguments) || this;
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.vlsPolicy = new VirtualScrollListPolicy();
+            return _this;
         }
         // Override
         //
@@ -60,23 +63,33 @@ export default function createBroker(VirtualList) {
         // events and emitted.
         Broker.prototype.getRenderSlots = function (h) {
             var _this = this;
-            var _a = this, Draggable = _a.Draggable, Policy = _a.Policy;
+            var _a = this, Draggable = _a.Draggable, DraggablePolicy = _a.DraggablePolicy;
             var slots = VirtualList.options.methods.getRenderSlots.call(this, h);
-            var policy = new Policy(this.dataKey, this.dataSources, this.range);
+            var draggablePolicy = new DraggablePolicy(this.dataKey, this.dataSources, this.range);
+            if (this.vlsPolicy.draggingVNode) {
+                // ドラッグ中の要素を vls に差し込む
+                slots.splice(this.vlsPolicy.draggingIndex, 1, this.vlsPolicy.draggingVNode);
+            }
             return [
                 h(Draggable, {
                     props: {
                         value: this.dataSources,
                         // policy will find the real item from x.
-                        clone: function (x) { return policy.findRealItem(x); },
+                        clone: function (x) { return draggablePolicy.findRealItem(x); },
                     },
-                    on: __assign({ 
+                    on: __assign(__assign({ 
                         // Convert Draggable's change events to input events.
                         change: function (e) {
                             if (draggableEvents.some(function (n) { return n in e; })) {
-                                _this.$emit('input', policy.updatedSources(e));
+                                _this.$emit('input', draggablePolicy.updatedSources(e, _this.vlsPolicy.draggingRealIndex));
                             }
-                        } }, sortableEventHandlers(this)),
+                        } }, sortableEventHandlers(this)), { start: function (e) {
+                            _this.vlsPolicy.onDragStart(e, _this.range, slots);
+                            _this.$emit('start', e);
+                        }, end: function (e) {
+                            _this.vlsPolicy.onDragEnd();
+                            _this.$emit('end', e);
+                        } }),
                     attrs: this.$attrs,
                 }, slots),
             ];
@@ -101,7 +114,7 @@ export default function createBroker(VirtualList) {
         ], Broker.prototype, "Draggable", void 0);
         __decorate([
             Inject()
-        ], Broker.prototype, "Policy", void 0);
+        ], Broker.prototype, "DraggablePolicy", void 0);
         Broker = __decorate([
             Component
         ], Broker);

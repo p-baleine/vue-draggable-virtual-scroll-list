@@ -1,10 +1,11 @@
-import { mount } from '@vue/test-utils'
+import { createLocalVue, mount } from '@vue/test-utils'
 import Vue from 'vue'
 
 import DraggableVirtualList from '../../src'
 import { Item, generateItems } from '../utils'
 
 let wrapper: any
+let draggableWrapper: any
 let items: any
 let propsData: any
 
@@ -20,13 +21,17 @@ describe('simple', () => {
       dataSources: items,
       dataComponent: Item
     }
+    const localVue = createLocalVue()
     wrapper = mount(DraggableVirtualList, {
       attachToDocument: true,
+      localVue,
       propsData
     })
+    draggableWrapper = wrapper.find({ name: 'draggable' })
   })
 
   afterEach(() => {
+    draggableWrapper.destroy()
     wrapper.destroy()
   })
 
@@ -76,43 +81,60 @@ describe('simple', () => {
       expect(wrapper.find({ name: 'draggable'}).vm).not.toBeFalsy()
     })
 
-    let draggableWrapper: any
-
-    beforeEach(() => {
-      draggableWrapper = wrapper.find({ name: 'draggable'})
-    })
-
     describe('更新', () => {
-      async function applyStartAndUpdateDragEvents(
+      async function applyStartDragEvent(
+        oldIndex: number, newIndex: number) {
+        const dragged = wrapper.findAll('.phrase').at(oldIndex)
+        const item = dragged.element.parentNode
+        const dragStartEvent = { item, oldIndex }
+        const sortable = draggableWrapper.vm._sortable
+        sortable.options.onStart.call(sortable, dragStartEvent)
+        await Vue.nextTick()
+      }
+
+      async function applyUpdateDragEvent(
         oldIndex: number, newIndex: number) {
         const dragged = wrapper.findAll('.phrase').at(oldIndex)
         const item = dragged.element.parentNode
         const from = draggableWrapper.element
-        const dragStartEvent = { item }
         const dragUpdateEvent = { item, from, oldIndex, newIndex }
-
-        draggableWrapper.vm.onDragStart(dragStartEvent)
-        await Vue.nextTick()
-        draggableWrapper.vm.onDragUpdate(dragUpdateEvent)
+        const sortable = draggableWrapper.vm._sortable
+        sortable.options.onUpdate.call(sortable, dragUpdateEvent)
         await Vue.nextTick()
       }
 
-      it('swap済みの newList を input イベントで emit すること', async () => {
-        const oldIndex = 7
-        const newIndex = 2
-        await applyStartAndUpdateDragEvents(oldIndex, newIndex)
-        const newValue = wrapper.emitted().input[0][0]
-        expect(newValue[newIndex]).toEqual(items[oldIndex])
+      describe('スクロールなし', () => {
+        it('swap済みの newList を input イベントで emit すること', async () => {
+          const oldIndex = 7
+          const newIndex = 2
+          await applyStartDragEvent(oldIndex, newIndex)
+          await applyUpdateDragEvent(oldIndex, newIndex)
+          const newValue = wrapper.emitted().input[0][0]
+          expect(newValue[newIndex]).toEqual(items[oldIndex])
+        })
       })
 
       describe('10個分スクロールしたとき', () => {
         it('swap済みの newList を input イベントで emit すること', async () => {
-          const oldIndex = 7
-          const newIndex = 2
+          const oldIndex = 8
+          const newIndex = 3
           await triggerScrollEvents(10)
-          await applyStartAndUpdateDragEvents(oldIndex, newIndex)
+          await applyStartDragEvent(oldIndex, newIndex)
+          await applyUpdateDragEvent(oldIndex, newIndex)
           const newValue = wrapper.emitted().input[0][0]
           expect(newValue[newIndex + 10]).toEqual(items[oldIndex + 10])
+        })
+      })
+
+      describe('ドラッグ中に keeps(20個) をこえて50個分スクロールしたとき', () => {
+        it('swap済みの newList を input イベントで emit すること', async () => {
+          const oldIndex = 1
+          const newIndex = 4
+          await applyStartDragEvent(oldIndex, newIndex)
+          await triggerScrollEvents(50)
+          await applyUpdateDragEvent(oldIndex, newIndex)
+          const newValue = wrapper.emitted().input[0][0]
+          expect(newValue[newIndex + 50]).toEqual(items[oldIndex])
         })
       })
     })
