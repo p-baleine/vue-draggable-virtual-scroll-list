@@ -1,10 +1,14 @@
 import { CreateElement, VueConstructor, VNode } from 'vue';
 import { Vue, Component, Inject, Prop } from 'vue-property-decorator';
 
-import PolicyCtor, {
+import logger from '../logger';
+import DraggablePolicyCtor, {
   Instruction,
   instructionNames as draggableEvents
-} from './policy';
+} from './draggable-policy';
+import VirtualScrollListPolicy, {
+  DragStartEvent
+} from './virtual-scroll-list-policy';
 
 export interface IDraggable<T> extends VueConstructor {
   props: {
@@ -49,9 +53,10 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
     @Prop() dataComponent!: Vue;
 
     @Inject() Draggable!: IDraggable<T>;
-    @Inject() Policy!: typeof PolicyCtor;
+    @Inject() DraggablePolicy!: typeof DraggablePolicyCtor;
 
-    range: { start: number };
+    private range: { start: number };
+    private vlsPolicy = new VirtualScrollListPolicy();
 
     // Override
     //
@@ -60,26 +65,46 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
     // Draggable's change events would be converted to input
     // events and emitted.
     getRenderSlots(h: CreateElement) {
-      const { Draggable, Policy } = this;
+      const { Draggable, DraggablePolicy } = this;
       const slots = VirtualList.options.methods.getRenderSlots.call(this, h);
-      const policy = new Policy(this.dataKey, this.dataSources, this.range);
+      const draggablePolicy = new DraggablePolicy(
+        this.dataKey, this.dataSources, this.range);
+
+      if (this.vlsPolicy.draggingVNode) {
+        // ドラッグ中の要素を vls に差し込む
+        slots.splice(
+          this.vlsPolicy.draggingIndex, 1, this.vlsPolicy.draggingVNode);
+      }
 
       return [
         h(Draggable, {
           props: {
             value: this.dataSources,
+
             // policy will find the real item from x.
-            clone: (x: T) => policy.findRealItem(x),
+            clone: (x: T) => draggablePolicy.findRealItem(x),
           },
           on: {
             // Convert Draggable's change events to input events.
             change: (e: DraggableEvent<T>) => {
               if (draggableEvents.some(n => n in e)) {
-                this.$emit('input', policy.updatedSources(e));
+                this.$emit('input', draggablePolicy.updatedSources(
+                  e, this.vlsPolicy.draggingRealIndex));
               }
             },
+
             // Propagate Sortable events.
             ...sortableEventHandlers(this),
+
+            start: (e: DragStartEvent) => {
+              this.vlsPolicy.onDragStart(e, this.range, slots);
+              this.$emit('start', e);
+            },
+
+            end: (e: Event) => {
+              this.vlsPolicy.onDragEnd();
+              this.$emit('end', e);
+            }
           },
           attrs: this.$attrs,
         }, slots),

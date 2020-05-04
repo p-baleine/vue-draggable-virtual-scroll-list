@@ -32,7 +32,7 @@ import Draggable from 'vuedraggable';
 import VirtualList from 'vue-virtual-scroll-list';
 import { Vue, Component, Prop, Provide } from 'vue-property-decorator';
 import createBroker from './broker';
-import Policy from './broker/policy';
+import DraggablePolicy from './broker/draggable-policy';
 import { sortableEventHandlers } from './broker';
 var Broker = createBroker(VirtualList);
 // SortableJS/Vue.Draggable + tangbc/vue-virtual-scroll-list.
@@ -41,7 +41,7 @@ var DraggableVirtualList = /** @class */ (function (_super) {
     function DraggableVirtualList() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.Draggable = Draggable;
-        _this.Policy = Policy;
+        _this.DraggablePolicy = DraggablePolicy;
         return _this;
     }
     DraggableVirtualList.prototype.render = function (h) {
@@ -61,7 +61,7 @@ var DraggableVirtualList = /** @class */ (function (_super) {
     ], DraggableVirtualList.prototype, "Draggable", void 0);
     __decorate([
         Provide()
-    ], DraggableVirtualList.prototype, "Policy", void 0);
+    ], DraggableVirtualList.prototype, "DraggablePolicy", void 0);
     DraggableVirtualList = __decorate([
         Component
     ], DraggableVirtualList);

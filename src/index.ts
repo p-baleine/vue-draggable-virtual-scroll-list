@@ -4,7 +4,7 @@ import VirtualList from 'vue-virtual-scroll-list';
 import { Vue, Component, Prop, Provide } from 'vue-property-decorator';
 
 import createBroker from './broker';
-import Policy from './broker/policy';
+import DraggablePolicy from './broker/draggable-policy';
 import { sortableEventHandlers } from './broker';
 
 const Broker = createBroker(VirtualList)
@@ -15,7 +15,7 @@ export default class DraggableVirtualList<T> extends Vue {
   @Prop() value!: Array<T>;
 
   @Provide() Draggable = Draggable;
-  @Provide() Policy = Policy;
+  @Provide() DraggablePolicy = DraggablePolicy;
 
   public render(h: CreateElement) {
     return h(Broker, {

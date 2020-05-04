@@ -13,7 +13,7 @@ export interface Instruction<T> {
     };
 }
 export declare const instructionNames: string[];
-export default class Policy<T> {
+export default class DraggablePolicy<T> {
     private dataKey;
     private dataSources;
     private visibleRange;

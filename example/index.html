@@ -141,11 +141,11 @@
         `
       }
 
-      function generateItems(length = 100) {
+      function generateItems(length = 100, prefix = '') {
         return Array.from(
           { length },
           (_, id) => ({
-            id: id + '',
+            id: prefix ? `${prefix}-${id}` : id + '',
             content: `${id}：${faker.name.findName()}`
           }));
       }
@@ -158,8 +158,9 @@
         data() {
           return {
             items: generateItems(10000),
-            items2: generateItems(500),
-            items3: generateItems(100),
+            // Make sure that elements of two lists have unique ids.
+            items2: generateItems(500, 'lhs-'),
+            items3: generateItems(100, 'rhs-'),
             Item
           }
         },
