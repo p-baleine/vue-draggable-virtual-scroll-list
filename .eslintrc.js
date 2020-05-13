@@ -16,5 +16,7 @@ module.exports = {
     "project": "./tsconfig.json"
   },
   "rules": {
+    "prefer-spread": 1,
+    "@typescript-eslint/interface-name-prefix": 1
   }
 }
