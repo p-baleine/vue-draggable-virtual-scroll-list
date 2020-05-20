@@ -36,6 +36,9 @@ describe('simple', () => {
       itemHidden: (source: { id: number }) => {
         return source.id == 2
       },
+      itemClass: (source: any) => {
+        return `id-${source.id} dynamic-class ${source.id == 2 ? 'hidden' : ''}`
+      },
     }
     itemHiddenWrapper = mount(DraggableVirtualList as any, {
       attachToDocument: true,
@@ -74,13 +77,18 @@ describe('simple', () => {
     }
   })
 
-  it('itemHiddenにfiter関数を入れると、slotがfilterされること', () => {
+  it('itemHiddenにfiter関数を入れると、有効なslotがカウントサイズになること', () => {
     const children = itemHiddenWrapper.findAll('.dynamic-class')
-    for (let i = 0; i < propsData.keeps; ++i) {
+    for (let i = 0; i < children.length; ++i) {
       const child = children.at(i)
       const expectedClass = child.classes().join(' ')
-      expect(expectedClass).not.toContain(`id-${2} `)
+      if(i == 2) {
+        expect(expectedClass).toContain(`hidden`)
+      } else {
+        expect(expectedClass).not.toContain(`hidden`)
+      }
     }
+    expect(children.length).toBe(21)
   })
 
   async function triggerScrollEvents(offset: number) {
