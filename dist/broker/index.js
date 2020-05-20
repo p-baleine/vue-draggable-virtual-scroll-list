@@ -123,6 +123,9 @@ export default function createBroker(VirtualList) {
             Prop()
         ], Broker.prototype, "itemClass", void 0);
         __decorate([
+            Prop()
+        ], Broker.prototype, "disabled", void 0);
+        __decorate([
             Inject()
         ], Broker.prototype, "Draggable", void 0);
         __decorate([

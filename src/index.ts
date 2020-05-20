@@ -19,7 +19,7 @@ export default class DraggableVirtualList<T> extends Vue {
   @Prop() dataSources!: Array<T>
   @Prop() dataComponent!: Vue
   @Prop() itemClass?: string | (<Source>(source: Source) => string)
-
+  @Prop() disabled?: boolean
   @Provide() Draggable = Draggable
   @Provide() DraggablePolicy = DraggablePolicy
 

@@ -10,6 +10,7 @@ export default class DraggableVirtualList<T> extends Vue {
     dataSources: Array<T>;
     dataComponent: Vue;
     itemClass?: string | (<Source>(source: Source) => string);
+    disabled?: boolean;
     Draggable: import("vuedraggable").DraggableConstructor;
     DraggablePolicy: typeof DraggablePolicy;
     render(h: CreateElement): import("vue").VNode;

@@ -72,6 +72,7 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
     @Prop() dataComponent!: Vue
 
     @Prop() itemClass?: string | (<Source>(source: Source) => string)
+    @Prop() disabled?: boolean
 
     @Inject() Draggable!: IDraggable<T>
     @Inject() DraggablePolicy!: typeof DraggablePolicyCtor

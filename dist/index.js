@@ -75,6 +75,9 @@ var DraggableVirtualList = /** @class */ (function (_super) {
         Prop()
     ], DraggableVirtualList.prototype, "itemClass", void 0);
     __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "disabled", void 0);
+    __decorate([
         Provide()
     ], DraggableVirtualList.prototype, "Draggable", void 0);
     __decorate([
