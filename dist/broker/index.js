@@ -74,7 +74,7 @@ export default function createBroker(VirtualList) {
         };
         Broker.prototype._dataAdaptCondition = function (dataSource) {
             if (!this.itemHidden)
-                return !!dataSource;
+                return true;
             return !this.itemHidden(dataSource);
         };
         Broker.prototype._getRenderSlots = function (h) {
@@ -85,10 +85,13 @@ export default function createBroker(VirtualList) {
                 : this.range.end;
             var sliceCount = end - start + 1;
             var index = start;
+            var activeSlotCount = 0;
             while (index <= this.dataSources.length - 1 &&
-                slots.length < sliceCount) {
+                activeSlotCount < sliceCount) {
                 var dataSource = this.dataSources[index];
-                if (this._dataAdaptCondition(dataSource)) {
+                if (dataSource) {
+                    if (this._dataAdaptCondition(dataSource))
+                        activeSlotCount++;
                     slots.push(h(Item, {
                         class: typeof this.itemClass === 'function'
                             ? this.itemClass(dataSource)
