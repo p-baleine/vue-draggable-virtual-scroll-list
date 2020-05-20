@@ -1,6 +1,6 @@
 {
   "name": "vue-draggable-virtual-scroll-list",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "SortableJS/Vue.Draggable + tangbc/vue-virtual-scroll-list",
   "main": "dist/bundle.js",
   "scripts": {
