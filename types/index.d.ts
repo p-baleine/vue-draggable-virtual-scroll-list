@@ -16,5 +16,6 @@ export default class DraggableVirtualList<T> extends Vue {
     itemHidden?: (source: T) => boolean;
     itemTag?: string;
     extraProps?: Record<string, any>;
+    disableComputeMargin?: boolean;
     render(h: CreateElement): import("vue").VNode;
 }

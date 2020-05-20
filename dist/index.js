@@ -92,6 +92,9 @@ var DraggableVirtualList = /** @class */ (function (_super) {
     __decorate([
         Prop()
     ], DraggableVirtualList.prototype, "extraProps", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "disableComputeMargin", void 0);
     DraggableVirtualList = __decorate([
         Component
     ], DraggableVirtualList);

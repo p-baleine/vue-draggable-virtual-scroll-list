@@ -29,7 +29,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 import { Component, Inject, Prop, Watch } from 'vue-property-decorator';
-import { Item } from '../components/Item';
+import { Item, Slot } from '../components/Item';
 import { instructionNames as draggableEvents, } from './draggable-policy';
 import VirtualScrollListPolicy from './virtual-scroll-list-policy';
 export var SortableEvents;
@@ -55,6 +55,10 @@ export function sortableEventHandlers(context) {
 var EVENT_TYPE = {
     ITEM: 'item_resize',
     SLOT: 'slot_resize',
+};
+var SLOT_TYPE = {
+    HEADER: 'header',
+    FOOTER: 'footer',
 };
 var NAME = 'virtual-list';
 // A fuctory function which will return DraggableVirtualList constructor.
@@ -111,35 +115,6 @@ export default function createBroker(VirtualList) {
             }
             return slots;
         };
-        // _getRenderSlots(h: CreateElement) {
-        //   const slots = []
-        //   const start = this.disabled ? 0 : this.range.start
-        //   const end = this.disabled ? this.dataSources.length - 1 : this.range.end
-        //   for (let index = start; index <= end; index++) {
-        //     const dataSource = this.dataSources[index]
-        //     if (dataSource) {
-        //       slots.push(
-        //         h(Item, {
-        //           class: this.itemClass,
-        //           props: {
-        //             tag: this.itemTag,
-        //             event: EVENT_TYPE.ITEM,
-        //             horizontal: this.isHorizontal,
-        //             uniqueKey: dataSource[this.dataKey],
-        //             source: dataSource,
-        //             extraProps: this.extraProps,
-        //             component: this.dataComponent,
-        //           },
-        //         })
-        //       )
-        //     } else {
-        //       console.warn(
-        //         `[${NAME}]: cannot get the index ${index} from data-sources.`
-        //       )
-        //     }
-        //   }
-        //   return slots
-        // }
         Broker.prototype.getRenderSlots = function (h) {
             var _this = this;
             var _a = this, Draggable = _a.Draggable, DraggablePolicy = _a.DraggablePolicy;
@@ -173,6 +148,58 @@ export default function createBroker(VirtualList) {
                 }, slots),
             ];
         };
+        Broker.prototype._calcPadding = function () {
+            if (this.disabled)
+                return 0;
+            if (this.isHorizontal)
+                return "0px " + this.range.padBehind + "px 0px " + this.range.padFront + "px";
+            if (this.disableComputeMargin)
+                return 0;
+            return this.range.padFront + "px 0px " + this.range.padBehind + "px";
+        };
+        Broker.prototype.render = function (h) {
+            var _a = this.$slots, header = _a.header, footer = _a.footer;
+            var padding = this._calcPadding();
+            return h(this.rootTag, {
+                ref: 'root',
+                on: {
+                    '&scroll': this.onScroll,
+                },
+            }, [
+                // header slot.
+                header
+                    ? h(Slot, {
+                        class: this.headerClass,
+                        props: {
+                            tag: this.headerTag,
+                            event: EVENT_TYPE.SLOT,
+                            uniqueKey: SLOT_TYPE.HEADER,
+                        },
+                    }, header)
+                    : null,
+                // main list.
+                h(this.wrapTag, {
+                    class: this.wrapClass,
+                    attrs: {
+                        role: 'group',
+                    },
+                    style: {
+                        padding: padding,
+                    },
+                }, this.getRenderSlots(h)),
+                // footer slot.
+                footer
+                    ? h(Slot, {
+                        class: this.footerClass,
+                        props: {
+                            tag: this.footerTag,
+                            event: EVENT_TYPE.SLOT,
+                            uniqueKey: SLOT_TYPE.FOOTER,
+                        },
+                    }, footer)
+                    : null,
+            ]);
+        };
         __decorate([
             Prop()
         ], Broker.prototype, "size", void 0);
@@ -203,6 +230,9 @@ export default function createBroker(VirtualList) {
         __decorate([
             Prop()
         ], Broker.prototype, "extraProps", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "disableComputeMargin", void 0);
         __decorate([
             Inject()
         ], Broker.prototype, "Draggable", void 0);

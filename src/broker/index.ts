@@ -1,6 +1,6 @@
 import { CreateElement, VueConstructor, VNode, VNodeData } from 'vue'
 import { Vue, Component, Inject, Prop, Watch } from 'vue-property-decorator'
-import { Item } from '../components/Item'
+import { Item, Slot } from '../components/Item'
 import logger from '../logger'
 import DraggablePolicyCtor, {
   Instruction,
@@ -64,6 +64,11 @@ const EVENT_TYPE = {
   SLOT: 'slot_resize',
 }
 
+const SLOT_TYPE = {
+  HEADER: 'header', // string value also use for aria role attribute.
+  FOOTER: 'footer',
+}
+
 const NAME = 'virtual-list'
 // A fuctory function which will return DraggableVirtualList constructor.
 export default function createBroker(VirtualList: IVirtualList): IVirtualList {
@@ -84,6 +89,7 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
     @Prop() itemHidden?: (source: T) => boolean
     @Prop({ default: 'div' }) itemTag?: string
     @Prop() extraProps?: Record<string, any>
+    @Prop() disableComputeMargin?: boolean
 
     @Inject() Draggable!: IDraggable<T>
     @Inject() DraggablePolicy!: typeof DraggablePolicyCtor
@@ -147,35 +153,6 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
       }
       return slots
     }
-    // _getRenderSlots(h: CreateElement) {
-    //   const slots = []
-    //   const start = this.disabled ? 0 : this.range.start
-    //   const end = this.disabled ? this.dataSources.length - 1 : this.range.end
-    //   for (let index = start; index <= end; index++) {
-    //     const dataSource = this.dataSources[index]
-    //     if (dataSource) {
-    //       slots.push(
-    //         h(Item, {
-    //           class: this.itemClass,
-    //           props: {
-    //             tag: this.itemTag,
-    //             event: EVENT_TYPE.ITEM,
-    //             horizontal: this.isHorizontal,
-    //             uniqueKey: dataSource[this.dataKey],
-    //             source: dataSource,
-    //             extraProps: this.extraProps,
-    //             component: this.dataComponent,
-    //           },
-    //         })
-    //       )
-    //     } else {
-    //       console.warn(
-    //         `[${NAME}]: cannot get the index ${index} from data-sources.`
-    //       )
-    //     }
-    //   }
-    //   return slots
-    // }
     getRenderSlots(h: CreateElement) {
       const { Draggable, DraggablePolicy } = this
       const slots = this._getRenderSlots(h)
@@ -234,6 +211,75 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
           slots
         ),
       ]
+    }
+
+    _calcPadding(this: any) {
+      if (this.disabled) return 0
+      if (this.isHorizontal)
+        return `0px ${this.range.padBehind}px 0px ${this.range.padFront}px`
+      if (this.disableComputeMargin) return 0
+      return `${this.range.padFront}px 0px ${this.range.padBehind}px`
+    }
+    render(this: any, h: CreateElement) {
+      const { header, footer } = this.$slots
+      const padding = this._calcPadding()
+      return h(
+        this.rootTag,
+        {
+          ref: 'root',
+          on: {
+            '&scroll': this.onScroll,
+          },
+        },
+        [
+          // header slot.
+          header
+            ? h(
+                Slot,
+                {
+                  class: this.headerClass,
+                  props: {
+                    tag: this.headerTag,
+                    event: EVENT_TYPE.SLOT,
+                    uniqueKey: SLOT_TYPE.HEADER,
+                  },
+                },
+                header
+              )
+            : null,
+
+          // main list.
+          h(
+            this.wrapTag,
+            {
+              class: this.wrapClass,
+              attrs: {
+                role: 'group',
+              },
+              style: {
+                padding: padding,
+              },
+            },
+            this.getRenderSlots(h)
+          ),
+
+          // footer slot.
+          footer
+            ? h(
+                Slot,
+                {
+                  class: this.footerClass,
+                  props: {
+                    tag: this.footerTag,
+                    event: EVENT_TYPE.SLOT,
+                    uniqueKey: SLOT_TYPE.FOOTER,
+                  },
+                },
+                footer
+              )
+            : null,
+        ]
+      )
     }
   }
 
