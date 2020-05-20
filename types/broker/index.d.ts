@@ -29,6 +29,6 @@ export declare enum SortableEvents {
     clone = 9
 }
 declare type DraggableEvent<T> = Instruction<T> & Event;
-export default function createBroker(VirtualList: IVirtualList): IVirtualList;
 export declare function sortableEventHandlers(context: Vue): {};
+export default function createBroker(VirtualList: IVirtualList): IVirtualList;
 export {};

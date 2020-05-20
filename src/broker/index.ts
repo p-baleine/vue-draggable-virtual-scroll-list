@@ -77,8 +77,7 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
     @Inject() DraggablePolicy!: typeof DraggablePolicyCtor
 
     @Watch('dataSources')
-    onDataSourcesChanged(this: any,newValue: string, oldValue: string) {
-      debugger
+    onDataSourcesChanged(this: any, newValue: string, oldValue: string) {
       if (newValue.length !== oldValue.length) {
         this.virtual.updateParam('uniqueIds', this.getUniqueIdFromDataSources())
         this.virtual.handleDataSourcesChange()
@@ -93,10 +92,16 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
       const _ext_h = (tag: string, vNodeData: VNodeData): VNode => {
         return h(tag, {
           ...vNodeData,
-          class: typeof this.itemClass === 'function' ? this.itemClass(vNodeData.props.source) : this.itemClass
+          class:
+            typeof this.itemClass === 'function'
+              ? this.itemClass(vNodeData.props.source)
+              : this.itemClass,
         })
       }
-      const slots = VirtualList.options.methods.getRenderSlots.call(this, _ext_h)
+      const slots = VirtualList.options.methods.getRenderSlots.call(
+        this,
+        _ext_h
+      )
       const draggablePolicy = new DraggablePolicy(
         this.dataKey,
         this.dataSources,

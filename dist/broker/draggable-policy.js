@@ -29,8 +29,8 @@ var DraggablePolicy = /** @class */ (function () {
             var start = this.visibleRange.start + newIndex;
             var deleteCount = 0;
             var item = newList.splice(draggingRealIndex, 1)[0];
-            logger.debug("Move by splicing start: " + start + ","
-                + (" deleteCount: " + deleteCount + ", item:"), item);
+            logger.debug("Move by splicing start: " + start + "," +
+                (" deleteCount: " + deleteCount + ", item:"), item);
             newList.splice(start, deleteCount, item);
         }
         else if ('added' in instruction) {
@@ -38,16 +38,15 @@ var DraggablePolicy = /** @class */ (function () {
             var start = this.visibleRange.start + newIndex;
             var deleteCount = 0;
             var item = element;
-            logger.debug("Add by splicing start: " + start + ","
-                + (" deleteCount: " + deleteCount + ", item:"), item);
+            logger.debug("Add by splicing start: " + start + "," +
+                (" deleteCount: " + deleteCount + ", item:"), item);
             newList.splice(start, deleteCount, item);
         }
         else if ('removed' in instruction) {
             var oldIndex = instruction.removed.oldIndex;
             var start = this.visibleRange.start + oldIndex;
             var deleteCount = 1;
-            logger.debug("Remove by splicing start: " + start + ","
-                + (" deleteCount: " + deleteCount));
+            logger.debug("Remove by splicing start: " + start + "," + (" deleteCount: " + deleteCount));
             newList.splice(start, deleteCount);
         }
         return newList;
