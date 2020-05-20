@@ -29,6 +29,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 import { Component, Inject, Prop, Watch } from 'vue-property-decorator';
+import { Item } from '../components/Item';
 import { instructionNames as draggableEvents, } from './draggable-policy';
 import VirtualScrollListPolicy from './virtual-scroll-list-policy';
 export var SortableEvents;
@@ -51,6 +52,11 @@ export function sortableEventHandlers(context) {
         return (__assign(__assign({}, acc), (_a = {}, _a[eventName] = context.$emit.bind(context, eventName), _a)));
     }, {});
 }
+var EVENT_TYPE = {
+    ITEM: 'item_resize',
+    SLOT: 'slot_resize',
+};
+var NAME = 'virtual-list';
 // A fuctory function which will return DraggableVirtualList constructor.
 export default function createBroker(VirtualList) {
     var Broker = /** @class */ (function (_super) {
@@ -66,15 +72,75 @@ export default function createBroker(VirtualList) {
                 this.virtual.handleDataSourcesChange();
             }
         };
+        Broker.prototype._dataAdaptCondition = function (dataSource) {
+            if (!this.itemHidden)
+                return !!dataSource;
+            return !this.itemHidden(dataSource);
+        };
+        Broker.prototype._getRenderSlots = function (h) {
+            var slots = [];
+            var start = this.disabled ? 0 : this.range.start;
+            var end = this.disabled || this.range.end > this.dataSources.length
+                ? this.dataSources.length - 1
+                : this.range.end;
+            var sliceCount = end - start + 1;
+            var index = start;
+            while (index <= this.dataSources.length - 1 &&
+                slots.length < sliceCount) {
+                var dataSource = this.dataSources[index];
+                if (this._dataAdaptCondition(dataSource)) {
+                    slots.push(h(Item, {
+                        class: typeof this.itemClass === 'function'
+                            ? this.itemClass(dataSource)
+                            : this.itemClass,
+                        props: {
+                            tag: this.itemTag,
+                            event: EVENT_TYPE.ITEM,
+                            horizontal: this.isHorizontal,
+                            uniqueKey: dataSource[this.dataKey],
+                            source: dataSource,
+                            extraProps: this.extraProps,
+                            component: this.dataComponent,
+                        },
+                    }));
+                }
+                index++;
+            }
+            return slots;
+        };
+        // _getRenderSlots(h: CreateElement) {
+        //   const slots = []
+        //   const start = this.disabled ? 0 : this.range.start
+        //   const end = this.disabled ? this.dataSources.length - 1 : this.range.end
+        //   for (let index = start; index <= end; index++) {
+        //     const dataSource = this.dataSources[index]
+        //     if (dataSource) {
+        //       slots.push(
+        //         h(Item, {
+        //           class: this.itemClass,
+        //           props: {
+        //             tag: this.itemTag,
+        //             event: EVENT_TYPE.ITEM,
+        //             horizontal: this.isHorizontal,
+        //             uniqueKey: dataSource[this.dataKey],
+        //             source: dataSource,
+        //             extraProps: this.extraProps,
+        //             component: this.dataComponent,
+        //           },
+        //         })
+        //       )
+        //     } else {
+        //       console.warn(
+        //         `[${NAME}]: cannot get the index ${index} from data-sources.`
+        //       )
+        //     }
+        //   }
+        //   return slots
+        // }
         Broker.prototype.getRenderSlots = function (h) {
             var _this = this;
             var _a = this, Draggable = _a.Draggable, DraggablePolicy = _a.DraggablePolicy;
-            var _ext_h = function (tag, vNodeData) {
-                return h(tag, __assign(__assign({}, vNodeData), { class: typeof _this.itemClass === 'function'
-                        ? _this.itemClass(vNodeData.props.source)
-                        : _this.itemClass }));
-            };
-            var slots = VirtualList.options.methods.getRenderSlots.call(this, _ext_h);
+            var slots = this._getRenderSlots(h);
             var draggablePolicy = new DraggablePolicy(this.dataKey, this.dataSources, this.range);
             if (this.vlsPolicy.draggingVNode) {
                 // ドラッグ中の要素を vls に差し込む
@@ -120,11 +186,20 @@ export default function createBroker(VirtualList) {
             Prop()
         ], Broker.prototype, "dataComponent", void 0);
         __decorate([
-            Prop()
+            Prop({ default: '' })
         ], Broker.prototype, "itemClass", void 0);
         __decorate([
             Prop()
         ], Broker.prototype, "disabled", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "itemHidden", void 0);
+        __decorate([
+            Prop({ default: 'div' })
+        ], Broker.prototype, "itemTag", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "extraProps", void 0);
         __decorate([
             Inject()
         ], Broker.prototype, "Draggable", void 0);

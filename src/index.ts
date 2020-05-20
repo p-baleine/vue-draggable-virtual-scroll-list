@@ -18,10 +18,15 @@ export default class DraggableVirtualList<T> extends Vue {
   @Prop() dataKey!: keyof T
   @Prop() dataSources!: Array<T>
   @Prop() dataComponent!: Vue
-  @Prop() itemClass?: string | (<Source>(source: Source) => string)
+  @Prop({ default: '' }) itemClass?:
+    | string
+    | (<Source>(source: Source) => string)
   @Prop() disabled?: boolean
   @Provide() Draggable = Draggable
   @Provide() DraggablePolicy = DraggablePolicy
+  @Prop() itemHidden?: (source: T) => boolean
+  @Prop({ default: 'div' }) itemTag?: string
+  @Prop() extraProps?: Record<string, any>
 
   public render(h: CreateElement) {
     return h(Broker, {

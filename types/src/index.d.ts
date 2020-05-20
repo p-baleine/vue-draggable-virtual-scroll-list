@@ -1,4 +1,4 @@
-/// <reference path="vuedraggable.d.ts" />
+/// <reference path="../vuedraggable.d.ts" />
 import { CreateElement } from 'vue';
 import { Vue } from 'vue-property-decorator';
 import DraggablePolicy from './broker/draggable-policy';

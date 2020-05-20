@@ -8,4 +8,9 @@ module.exports = {
     'vue$': 'vue/dist/vue.common.dev.js'
   },
   setupFiles: ['./tests/setup.js'],
+  globals: {
+    'ts-jest': {
+      tsConfig: 'tsconfig.test.json'
+    }
+  }
 }

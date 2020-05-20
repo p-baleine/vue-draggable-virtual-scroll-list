@@ -72,7 +72,7 @@ var DraggableVirtualList = /** @class */ (function (_super) {
         Prop()
     ], DraggableVirtualList.prototype, "dataComponent", void 0);
     __decorate([
-        Prop()
+        Prop({ default: '' })
     ], DraggableVirtualList.prototype, "itemClass", void 0);
     __decorate([
         Prop()
@@ -83,6 +83,15 @@ var DraggableVirtualList = /** @class */ (function (_super) {
     __decorate([
         Provide()
     ], DraggableVirtualList.prototype, "DraggablePolicy", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "itemHidden", void 0);
+    __decorate([
+        Prop({ default: 'div' })
+    ], DraggableVirtualList.prototype, "itemTag", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "extraProps", void 0);
     DraggableVirtualList = __decorate([
         Component
     ], DraggableVirtualList);
