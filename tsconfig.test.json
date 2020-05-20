@@ -1,4 +1,5 @@
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
     "declaration": true,
     "declarationDir": "./types/",
@@ -16,7 +17,7 @@
     "experimentalDecorators": true,
     "esModuleInterop": true
   },
-  "include": ["./src", "./types"],
+  "include": ["./src", "./types", "./tests"],
   "files": [
     "types/vuedraggable.d.ts",
     "types/vue-virtual-scroll-list.d.ts"

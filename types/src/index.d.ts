@@ -1,4 +1,4 @@
-/// <reference path="vuedraggable.d.ts" />
+/// <reference path="../vuedraggable.d.ts" />
 import { CreateElement } from 'vue';
 import { Vue } from 'vue-property-decorator';
 import DraggablePolicy from './broker/draggable-policy';
@@ -16,6 +16,5 @@ export default class DraggableVirtualList<T> extends Vue {
     itemHidden?: (source: T) => boolean;
     itemTag?: string;
     extraProps?: Record<string, any>;
-    disableComputeMargin?: boolean;
     render(h: CreateElement): import("vue").VNode;
 }

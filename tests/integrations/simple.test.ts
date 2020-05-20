@@ -5,6 +5,7 @@ import DraggableVirtualList from '../../src'
 import { Item, generateItems } from '../utils'
 
 let wrapper: any
+let itemHiddenWrapper: any
 let draggableWrapper: any
 let items: any
 let propsData: any
@@ -19,13 +20,30 @@ describe('simple', () => {
       keeps: 20,
       dataKey: 'id',
       dataSources: items,
-      dataComponent: Item
+      dataComponent: Item,
+      itemClass: (source: any) => {
+        return `id-${source.id} dynamic-class`
+      },
     }
     const localVue = createLocalVue()
     wrapper = mount(DraggableVirtualList, {
       attachToDocument: true,
       localVue,
-      propsData
+      propsData,
+    })
+    const cPropsData: any = {
+      ...propsData,
+      itemHidden: (source: { id: number }) => {
+        return source.id == 2
+      },
+      itemClass: (source: any) => {
+        return `id-${source.id} dynamic-class ${source.id == 2 ? 'hidden' : ''}`
+      },
+    }
+    itemHiddenWrapper = mount(DraggableVirtualList as any, {
+      attachToDocument: true,
+      localVue,
+      propsData: cPropsData,
     })
     draggableWrapper = wrapper.find({ name: 'draggable' })
   })
@@ -33,6 +51,7 @@ describe('simple', () => {
   afterEach(() => {
     draggableWrapper.destroy()
     wrapper.destroy()
+    itemHiddenWrapper.destroy()
   })
 
   it('keeos個のdataComponentsを描画すること', () => {
@@ -47,6 +66,29 @@ describe('simple', () => {
   it('keepsを越える位置にあるdataのdataComponentは描かないこと', () => {
     const children = wrapper.findAll('.phrase')
     expect(() => children.at(propsData.keeps)).toThrow(/no item exists at/)
+  })
+
+  it('itemClassにfunctionをbindすると動的にclassが書き換わること', () => {
+    const children = wrapper.findAll('.dynamic-class')
+    for (let i = 0; i < propsData.keeps; ++i) {
+      const child = children.at(i)
+      const expectedClass = child.classes().join(' ')
+      expect(expectedClass).toContain(`id-${items[i].id}`)
+    }
+  })
+
+  it('itemHiddenにfiter関数を入れると、有効なslotがカウントサイズになること', () => {
+    const children = itemHiddenWrapper.findAll('.dynamic-class')
+    for (let i = 0; i < children.length; ++i) {
+      const child = children.at(i)
+      const expectedClass = child.classes().join(' ')
+      if(i == 2) {
+        expect(expectedClass).toContain(`hidden`)
+      } else {
+        expect(expectedClass).not.toContain(`hidden`)
+      }
+    }
+    expect(children.length).toBe(21)
   })
 
   async function triggerScrollEvents(offset: number) {
@@ -78,12 +120,11 @@ describe('simple', () => {
 
   describe('DnD', () => {
     it('DraggableをVirtualListの子どもとしてもっていること', () => {
-      expect(wrapper.find({ name: 'draggable'}).vm).not.toBeFalsy()
+      expect(wrapper.find({ name: 'draggable' }).vm).not.toBeFalsy()
     })
 
     describe('更新', () => {
-      async function applyStartDragEvent(
-        oldIndex: number, newIndex: number) {
+      async function applyStartDragEvent(oldIndex: number, newIndex: number) {
         const dragged = wrapper.findAll('.phrase').at(oldIndex)
         const item = dragged.element.parentNode
         const dragStartEvent = { item, oldIndex }
@@ -92,8 +133,7 @@ describe('simple', () => {
         await Vue.nextTick()
       }
 
-      async function applyUpdateDragEvent(
-        oldIndex: number, newIndex: number) {
+      async function applyUpdateDragEvent(oldIndex: number, newIndex: number) {
         const dragged = wrapper.findAll('.phrase').at(oldIndex)
         const item = dragged.element.parentNode
         const from = draggableWrapper.element
@@ -141,7 +181,7 @@ describe('simple', () => {
 
     describe('Events', () => {
       describe('start', () => {
-        it('should propagate Sortable\'s start event', async () => {
+        it("should propagate Sortable's start event", async () => {
           const dragged = wrapper.findAll('.phrase').at(3)
           const item = dragged.element.parentNode
           const event = { item }
@@ -150,11 +190,12 @@ describe('simple', () => {
           sortable.options.onStart.call(sortable, event)
           await Vue.nextTick()
 
-          const startEventEmittedFromDraggable =
-            draggableWrapper.emitted().start[0][0]
+          const startEventEmittedFromDraggable = draggableWrapper.emitted()
+            .start[0][0]
 
-          expect(wrapper.emitted().start[0][0])
-            .toBe(startEventEmittedFromDraggable)
+          expect(wrapper.emitted().start[0][0]).toBe(
+            startEventEmittedFromDraggable
+          )
         })
       })
     })

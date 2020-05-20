@@ -1,21 +1,33 @@
-import { CreateElement } from 'vue';
-import Draggable from 'vuedraggable';
-import VirtualList from 'vue-virtual-scroll-list';
-import { Vue, Component, Prop, Provide } from 'vue-property-decorator';
+import { CreateElement } from 'vue'
+import Draggable from 'vuedraggable'
+import VirtualList from 'vue-virtual-scroll-list'
+import { Vue, Component, Prop, Provide } from 'vue-property-decorator'
 
-import createBroker from './broker';
-import DraggablePolicy from './broker/draggable-policy';
-import { sortableEventHandlers } from './broker';
+import createBroker from './broker'
+import DraggablePolicy from './broker/draggable-policy'
+import { sortableEventHandlers } from './broker'
 
 const Broker = createBroker(VirtualList)
 
 // SortableJS/Vue.Draggable + tangbc/vue-virtual-scroll-list.
 @Component
 export default class DraggableVirtualList<T> extends Vue {
-  @Prop() value!: Array<T>;
-
-  @Provide() Draggable = Draggable;
-  @Provide() DraggablePolicy = DraggablePolicy;
+  @Prop() value!: Array<T>
+  @Prop() size?: number
+  @Prop() keeps!: number
+  @Prop() dataKey!: keyof T
+  @Prop() dataSources!: Array<T>
+  @Prop() dataComponent!: Vue
+  @Prop({ default: '' }) itemClass?:
+    | string
+    | (<Source>(source: Source) => string)
+  @Prop() disabled?: boolean
+  @Provide() Draggable = Draggable
+  @Provide() DraggablePolicy = DraggablePolicy
+  @Prop() itemHidden?: (source: T) => boolean
+  @Prop({ default: 'div' }) itemTag?: string
+  @Prop() extraProps?: Record<string, any>
+  @Prop() disableComputeMargin?: boolean
 
   public render(h: CreateElement) {
     return h(Broker, {
@@ -28,6 +40,6 @@ export default class DraggableVirtualList<T> extends Vue {
         // Propagate draggable.sortable's events.
         ...sortableEventHandlers(this),
       },
-    });
+    })
   }
 }

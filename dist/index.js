@@ -57,11 +57,44 @@ var DraggableVirtualList = /** @class */ (function (_super) {
         Prop()
     ], DraggableVirtualList.prototype, "value", void 0);
     __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "size", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "keeps", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "dataKey", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "dataSources", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "dataComponent", void 0);
+    __decorate([
+        Prop({ default: '' })
+    ], DraggableVirtualList.prototype, "itemClass", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "disabled", void 0);
+    __decorate([
         Provide()
     ], DraggableVirtualList.prototype, "Draggable", void 0);
     __decorate([
         Provide()
     ], DraggableVirtualList.prototype, "DraggablePolicy", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "itemHidden", void 0);
+    __decorate([
+        Prop({ default: 'div' })
+    ], DraggableVirtualList.prototype, "itemTag", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "extraProps", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "disableComputeMargin", void 0);
     DraggableVirtualList = __decorate([
         Component
     ], DraggableVirtualList);

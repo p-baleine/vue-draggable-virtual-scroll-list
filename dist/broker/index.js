@@ -28,8 +28,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-import { Component, Inject, Prop } from 'vue-property-decorator';
-import { instructionNames as draggableEvents } from './draggable-policy';
+import { Component, Inject, Prop, Watch } from 'vue-property-decorator';
+import { Item, Slot } from '../components/Item';
+import { instructionNames as draggableEvents, } from './draggable-policy';
 import VirtualScrollListPolicy from './virtual-scroll-list-policy';
 export var SortableEvents;
 (function (SortableEvents) {
@@ -44,8 +45,22 @@ export var SortableEvents;
     SortableEvents[SortableEvents["filter"] = 8] = "filter";
     SortableEvents[SortableEvents["clone"] = 9] = "clone";
 })(SortableEvents || (SortableEvents = {}));
-var sortableEvents = Object.values(SortableEvents)
-    .filter(function (x) { return typeof x === 'string'; });
+var sortableEvents = Object.values(SortableEvents).filter(function (x) { return typeof x === 'string'; });
+export function sortableEventHandlers(context) {
+    return sortableEvents.reduce(function (acc, eventName) {
+        var _a;
+        return (__assign(__assign({}, acc), (_a = {}, _a[eventName] = context.$emit.bind(context, eventName), _a)));
+    }, {});
+}
+var EVENT_TYPE = {
+    ITEM: 'item_resize',
+    SLOT: 'slot_resize',
+};
+var SLOT_TYPE = {
+    HEADER: 'header',
+    FOOTER: 'footer',
+};
+var NAME = 'virtual-list';
 // A fuctory function which will return DraggableVirtualList constructor.
 export default function createBroker(VirtualList) {
     var Broker = /** @class */ (function (_super) {
@@ -55,16 +70,55 @@ export default function createBroker(VirtualList) {
             _this.vlsPolicy = new VirtualScrollListPolicy();
             return _this;
         }
-        // Override
-        //
-        // Return the result of VirtualList.options.methods.getRenderSlots
-        // which would be wrapped by Draggable.
-        // Draggable's change events would be converted to input
-        // events and emitted.
+        Broker.prototype.onDataSourcesChanged = function (newValue, oldValue) {
+            if (newValue.length !== oldValue.length) {
+                this.virtual.updateParam('uniqueIds', this.getUniqueIdFromDataSources());
+                this.virtual.handleDataSourcesChange();
+            }
+        };
+        Broker.prototype._dataAdaptCondition = function (dataSource) {
+            if (!this.itemHidden)
+                return true;
+            return !this.itemHidden(dataSource);
+        };
+        Broker.prototype._getRenderSlots = function (h) {
+            var slots = [];
+            var start = this.disabled ? 0 : this.range.start;
+            var end = this.disabled || this.range.end > this.dataSources.length
+                ? this.dataSources.length - 1
+                : this.range.end;
+            var sliceCount = end - start + 1;
+            var index = start;
+            var activeSlotCount = 0;
+            while (index <= this.dataSources.length - 1 &&
+                activeSlotCount < sliceCount) {
+                var dataSource = this.dataSources[index];
+                if (dataSource) {
+                    if (this._dataAdaptCondition(dataSource))
+                        activeSlotCount++;
+                    slots.push(h(Item, {
+                        class: typeof this.itemClass === 'function'
+                            ? this.itemClass(dataSource)
+                            : this.itemClass,
+                        props: {
+                            tag: this.itemTag,
+                            event: EVENT_TYPE.ITEM,
+                            horizontal: this.isHorizontal,
+                            uniqueKey: dataSource[this.dataKey],
+                            source: dataSource,
+                            extraProps: this.extraProps,
+                            component: this.dataComponent,
+                        },
+                    }));
+                }
+                index++;
+            }
+            return slots;
+        };
         Broker.prototype.getRenderSlots = function (h) {
             var _this = this;
             var _a = this, Draggable = _a.Draggable, DraggablePolicy = _a.DraggablePolicy;
-            var slots = VirtualList.options.methods.getRenderSlots.call(this, h);
+            var slots = this._getRenderSlots(h);
             var draggablePolicy = new DraggablePolicy(this.dataKey, this.dataSources, this.range);
             if (this.vlsPolicy.draggingVNode) {
                 // ドラッグ中の要素を vls に差し込む
@@ -94,6 +148,58 @@ export default function createBroker(VirtualList) {
                 }, slots),
             ];
         };
+        Broker.prototype._calcPadding = function () {
+            if (this.disabled)
+                return 0;
+            if (this.isHorizontal)
+                return "0px " + this.range.padBehind + "px 0px " + this.range.padFront + "px";
+            if (this.disableComputeMargin)
+                return 0;
+            return this.range.padFront + "px 0px " + this.range.padBehind + "px";
+        };
+        Broker.prototype.render = function (h) {
+            var _a = this.$slots, header = _a.header, footer = _a.footer;
+            var padding = this._calcPadding();
+            return h(this.rootTag, {
+                ref: 'root',
+                on: {
+                    '&scroll': this.onScroll,
+                },
+            }, [
+                // header slot.
+                header
+                    ? h(Slot, {
+                        class: this.headerClass,
+                        props: {
+                            tag: this.headerTag,
+                            event: EVENT_TYPE.SLOT,
+                            uniqueKey: SLOT_TYPE.HEADER,
+                        },
+                    }, header)
+                    : null,
+                // main list.
+                h(this.wrapTag, {
+                    class: this.wrapClass,
+                    attrs: {
+                        role: 'group',
+                    },
+                    style: {
+                        padding: padding,
+                    },
+                }, this.getRenderSlots(h)),
+                // footer slot.
+                footer
+                    ? h(Slot, {
+                        class: this.footerClass,
+                        props: {
+                            tag: this.footerTag,
+                            event: EVENT_TYPE.SLOT,
+                            uniqueKey: SLOT_TYPE.FOOTER,
+                        },
+                    }, footer)
+                    : null,
+            ]);
+        };
         __decorate([
             Prop()
         ], Broker.prototype, "size", void 0);
@@ -110,11 +216,32 @@ export default function createBroker(VirtualList) {
             Prop()
         ], Broker.prototype, "dataComponent", void 0);
         __decorate([
+            Prop({ default: '' })
+        ], Broker.prototype, "itemClass", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "disabled", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "itemHidden", void 0);
+        __decorate([
+            Prop({ default: 'div' })
+        ], Broker.prototype, "itemTag", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "extraProps", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "disableComputeMargin", void 0);
+        __decorate([
             Inject()
         ], Broker.prototype, "Draggable", void 0);
         __decorate([
             Inject()
         ], Broker.prototype, "DraggablePolicy", void 0);
+        __decorate([
+            Watch('dataSources')
+        ], Broker.prototype, "onDataSourcesChanged", null);
         Broker = __decorate([
             Component
         ], Broker);
@@ -123,10 +250,4 @@ export default function createBroker(VirtualList) {
     return Broker;
 }
 // Returns handlers which propagate sortable's events.
-export function sortableEventHandlers(context) {
-    return sortableEvents.reduce(function (acc, eventName) {
-        var _a;
-        return (__assign(__assign({}, acc), (_a = {}, _a[eventName] = context.$emit.bind(context, eventName), _a)));
-    }, {});
-}
 //# sourceMappingURL=index.js.map
