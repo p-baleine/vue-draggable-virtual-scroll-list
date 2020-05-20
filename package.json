@@ -15,7 +15,7 @@
   "dependencies": {
     "vue": "^2.6.11",
     "vue-property-decorator": "^8.4.1",
-    "vue-virtual-scroll-list": "^2.2.1",
+    "vue-virtual-scroll-list": "^2.0.3",
     "vuedraggable": "^2.23.2"
   },
   "devDependencies": {

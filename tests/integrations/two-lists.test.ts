@@ -16,7 +16,8 @@ describe('two-lists', () => {
       keeps: 20,
       dataKey: 'id',
       dataSources: items,
-      dataComponent: Item
+      dataComponent: Item,
+
     }
     const wrapper = mount(DraggableVirtualList, {
       attachToDocument: true,

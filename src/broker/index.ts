@@ -1,5 +1,5 @@
-import { CreateElement, VueConstructor, VNode } from 'vue'
-import { Vue, Component, Inject, Prop } from 'vue-property-decorator'
+import { CreateElement, VueConstructor, VNode, VNodeData } from 'vue'
+import { Vue, Component, Inject, Prop, Watch } from 'vue-property-decorator'
 
 import logger from '../logger'
 import DraggablePolicyCtor, {
@@ -71,21 +71,32 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
     @Prop() dataSources!: Array<T>
     @Prop() dataComponent!: Vue
 
+    @Prop() itemClass?: string | (<Source>(source: Source) => string)
+
     @Inject() Draggable!: IDraggable<T>
     @Inject() DraggablePolicy!: typeof DraggablePolicyCtor
+
+    @Watch('dataSources')
+    onDataSourcesChanged(this: any,newValue: string, oldValue: string) {
+      debugger
+      if (newValue.length !== oldValue.length) {
+        this.virtual.updateParam('uniqueIds', this.getUniqueIdFromDataSources())
+        this.virtual.handleDataSourcesChange()
+      }
+    }
 
     private range: { start: number }
     private vlsPolicy = new VirtualScrollListPolicy()
 
-    // Override
-    //
-    // Return the result of VirtualList.options.methods.getRenderSlots
-    // which would be wrapped by Draggable.
-    // Draggable's change events would be converted to input
-    // events and emitted.
     getRenderSlots(h: CreateElement) {
       const { Draggable, DraggablePolicy } = this
-      const slots = VirtualList.options.methods.getRenderSlots.call(this, h)
+      const _ext_h = (tag: string, vNodeData: VNodeData): VNode => {
+        return h(tag, {
+          ...vNodeData,
+          class: typeof this.itemClass === 'function' ? this.itemClass(vNodeData.props.source) : this.itemClass
+        })
+      }
+      const slots = VirtualList.options.methods.getRenderSlots.call(this, _ext_h)
       const draggablePolicy = new DraggablePolicy(
         this.dataKey,
         this.dataSources,
@@ -100,14 +111,12 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
           this.vlsPolicy.draggingVNode
         )
       }
-
       return [
         h(
           Draggable,
           {
             props: {
               value: this.dataSources,
-
               // policy will find the real item from x.
               clone: (x: T) => draggablePolicy.findRealItem(x),
             },

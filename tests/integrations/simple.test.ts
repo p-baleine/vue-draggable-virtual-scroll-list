@@ -19,7 +19,10 @@ describe('simple', () => {
       keeps: 20,
       dataKey: 'id',
       dataSources: items,
-      dataComponent: Item
+      dataComponent: Item,
+      itemClass: (source: any) => {
+        return `id-${source.id} dynamic-class`
+      }
     }
     const localVue = createLocalVue()
     wrapper = mount(DraggableVirtualList, {
@@ -47,6 +50,29 @@ describe('simple', () => {
   it('keepsを越える位置にあるdataのdataComponentは描かないこと', () => {
     const children = wrapper.findAll('.phrase')
     expect(() => children.at(propsData.keeps)).toThrow(/no item exists at/)
+  })
+
+  it('itemClassにfunctionをbindすると動的にclassが書き換わること', () => {
+    let children = wrapper.findAll('.dynamic-class')
+    for (let i = 0; i < propsData.keeps; ++i) {
+      const child = children.at(i)
+      const expectedClass = child.classes().join(' ')
+      expect(expectedClass).toContain(`id-${items[i].id}`)
+    }
+    // const OldDataSources = wrapper.props().dataSources
+    // const newDataSources = OldDataSources.map((data: any, i: number) => {
+    //   return {
+    //     ...data,
+    //     id: `${OldDataSources.length - i}`
+    //   }
+    // })
+    // wrapper.setProps({ dataSources: newDataSources })
+    // children = wrapper.findAll('.dynamic-class')
+    // for (let i = 0; i < propsData.keeps; ++i) {
+    //   const child = children.at(i)
+    //   const expectedClass = child.classes().join(' ')
+    //   expect(expectedClass).toContain(`id-${newDataSources[i].id}`)
+    // }
   })
 
   async function triggerScrollEvents(offset: number) {
