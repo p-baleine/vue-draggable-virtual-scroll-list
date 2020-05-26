@@ -3,9 +3,8 @@ import Draggable from 'vuedraggable'
 import VirtualList from 'vue-virtual-scroll-list'
 import { Vue, Component, Prop, Provide } from 'vue-property-decorator'
 
-import createBroker from './broker'
+import createBroker, { sortableEventHandlers } from './broker'
 import DraggablePolicy from './broker/draggable-policy'
-import { sortableEventHandlers } from './broker'
 
 const Broker = createBroker(VirtualList)
 

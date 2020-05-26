@@ -9,7 +9,6 @@ declare module 'vue-virtual-scroll-list' {
       }
     }
   }
-
-  export default VirtualList
   export const VirtualList: VirtualList
+  export default VirtualList
 }
