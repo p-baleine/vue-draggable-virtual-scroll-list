@@ -7,8 +7,9 @@ import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
 import { terser } from 'rollup-plugin-terser';
 import minimist from 'minimist';
-import typescript from 'rollup-plugin-typescript'
-import nodeResolve from 'rollup-plugin-node-resolve'
+import typescript from 'rollup-plugin-typescript2'
+import babel from '@rollup/plugin-babel'
+import nodeResolve from '@rollup/plugin-node-resolve'
 
 // Get browserslist config and remove ie from es build targets
 const esbrowserslist = fs.readFileSync('./.browserslistrc')
@@ -24,8 +25,9 @@ const baseConfig = {
   input: 'src/index.ts',
   plugins: {
     preVue: [
-      nodeResolve(),
       typescript(),
+      nodeResolve(),
+      babel(),
       alias({
         resolve: ['.js', '.jsx', '.ts', '.tsx', '.vue'],
         entries: {

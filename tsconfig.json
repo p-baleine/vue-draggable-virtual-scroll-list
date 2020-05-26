@@ -5,8 +5,8 @@
     "outDir": "./dist/",
     "noImplicitAny": true,
     "sourceMap": true,
-    "target": "es2015",
-    "module": "es2015",
+    "target": "esnext",
+    "module": "esnext",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "lib": [
