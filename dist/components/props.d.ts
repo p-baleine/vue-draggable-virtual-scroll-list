@@ -99,7 +99,7 @@ export declare const ItemProps: {
         type: ObjectConstructor;
     };
     component: {
-        type: ObjectConstructor;
+        type: (ObjectConstructor | FunctionConstructor)[];
     };
     uniqueKey: {
         type: StringConstructor;

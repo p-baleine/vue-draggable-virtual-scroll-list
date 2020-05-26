@@ -26,7 +26,6 @@ const baseConfig = {
   plugins: {
     preVue: [
       typescript(),
-      nodeResolve(),
       babel(),
       alias({
         resolve: ['.js', '.jsx', '.ts', '.tsx', '.vue'],
@@ -80,6 +79,7 @@ if (!argv.format || argv.format === 'es') {
         ...baseConfig.plugins.replace,
         'process.env.ES_BUILD': JSON.stringify('true'),
       }),
+      nodeResolve(),
       ...baseConfig.plugins.preVue,
       vue(baseConfig.plugins.vue),
       commonjs(),
@@ -102,6 +102,7 @@ if (!argv.format || argv.format === 'cjs') {
     },
     plugins: [
       replace(baseConfig.plugins.replace),
+      nodeResolve(),
       ...baseConfig.plugins.preVue,
       vue({
         ...baseConfig.plugins.vue,
@@ -125,13 +126,14 @@ if (!argv.format || argv.format === 'iife') {
       file: 'dist/vue-draggable-virtual-scroll-list.min.js',
       format: 'iife',
       name: 'VueDraggableVirtualScrollList',
-      exports: 'named',
+      exports: 'default',
       globals,
     },
     plugins: [
       replace(baseConfig.plugins.replace),
       ...baseConfig.plugins.preVue,
       vue(baseConfig.plugins.vue),
+      nodeResolve({browser: true, main: true}),
       commonjs(),
       terser({
         output: {

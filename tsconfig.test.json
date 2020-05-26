@@ -1,25 +1,4 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "declaration": true,
-    "declarationDir": "./types/",
-    "outDir": "./dist/",
-    "noImplicitAny": true,
-    "sourceMap": true,
-    "target": "es5",
-    "module": "es2015",
-    "moduleResolution": "node",
-    "lib": [
-      "es2019",
-      "esnext.array",
-      "dom"
-    ],
-    "experimentalDecorators": true,
-    "esModuleInterop": true
-  },
-  "include": ["./src", "./types", "./tests"],
-  "files": [
-    "types/vuedraggable.d.ts",
-    "types/vue-virtual-scroll-list.d.ts"
-  ]
+  "include": ["./src", "./types", "./tests","./example"]
 }

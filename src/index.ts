@@ -32,6 +32,7 @@ export default class DraggableVirtualList<T> extends Vue {
     return h(Broker, {
       props: this.$props,
       attrs: this.$attrs,
+
       on: {
         // Propagate VirtualList's input event.
         input: this.$emit.bind(this, 'input'),

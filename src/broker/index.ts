@@ -179,6 +179,7 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
               // policy will find the real item from x.
               clone: (x: T) => draggablePolicy.findRealItem(x),
             },
+
             on: {
               // Convert Draggable's change events to input events.
               change: (e: DraggableEvent<T>) => {
@@ -253,6 +254,7 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
             this.wrapTag,
             {
               class: this.wrapClass,
+
               attrs: {
                 role: 'group',
               },

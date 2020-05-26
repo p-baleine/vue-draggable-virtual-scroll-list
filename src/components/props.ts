@@ -107,7 +107,7 @@ export const ItemProps = {
     type: Object,
   },
   component: {
-    type: Object,
+    type: [Object, Function],
   },
   uniqueKey: {
     type: String,

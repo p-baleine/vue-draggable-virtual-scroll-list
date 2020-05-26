@@ -70,10 +70,5 @@ export class Logger {
 
 export default new Logger({
   out: window.console,
-  level:
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-    //@ts-ignore
-    process && process.env && process.env.NODE_ENV === 'development'
-      ? Level.DEBUG
-      : Level.ERROR,
+  level: Level.DEBUG,
 })

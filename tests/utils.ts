@@ -19,7 +19,7 @@ export function generateItems(length = 100) {
     { length },
     (_, id) => ({
       id: id + '',
-      content: `${id}：${name()}`
+      content: `${id}:${name()}`
     }))
 }
 
