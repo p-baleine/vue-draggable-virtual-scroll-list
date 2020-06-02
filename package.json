@@ -7,7 +7,6 @@
   "module": "dist/vue-draggable-virtual-scroll-list.esm.js",
   "unpkg": "dist/vue-draggable-virtual-scroll-list.min.js",
   "scripts": {
-    "watch": "webpack --watch --config webpack.development.js",
     "test": "jest",
     "lint": "eslint src",
     "lint:fix": "eslint --fix src",
@@ -62,10 +61,7 @@
     "ts-jest": "^25.3.1",
     "ts-loader": "^6.2.2",
     "typescript": "^3.8.3",
-    "vue-template-compiler": "^2.6.11",
-    "webpack": "^4.42.1",
-    "webpack-cli": "^3.3.11",
-    "webpack-merge": "^4.2.2"
+    "vue-template-compiler": "^2.6.11"
   },
   "peerDependencies": {
     "vue": "^2.6.11"

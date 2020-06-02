@@ -28,9 +28,17 @@ export default class DraggableVirtualList<T> extends Vue {
   @Prop() extraProps?: Record<string, any>
   @Prop() disableComputeMargin?: boolean
 
+  get filteredDatasources() {
+    if (!this.itemHidden) return this.dataSources
+    return this.dataSources.filter((data) => !this.itemHidden(data))
+  }
+
   public render(h: CreateElement) {
     return h(Broker, {
-      props: this.$props,
+      props: {
+        ...this.$props,
+        dataSources: this.filteredDatasources,
+      },
       attrs: this.$attrs,
 
       on: {
