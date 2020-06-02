@@ -114,7 +114,7 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
       if (!this.itemHidden) return true
       return !this.itemHidden(dataSource)
     }
-    _getRenderSlots(h: CreateElement) {
+    _getRenderSlots(h: CreateElement): any[] {
       const slots = []
       const start = this.disabled ? 0 : this.range.start
       const end =
@@ -130,30 +130,32 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
       ) {
         const dataSource = this.dataSources[index]
         if (dataSource) {
-          if (this._dataAdaptCondition(dataSource)) activeSlotCount++
-          slots.push(
-            h(Item, {
-              class:
-                typeof this.itemClass === 'function'
-                  ? this.itemClass(dataSource)
-                  : this.itemClass,
-              props: {
-                tag: this.itemTag,
-                event: EVENT_TYPE.ITEM,
-                horizontal: this.isHorizontal,
-                uniqueKey: dataSource[this.dataKey],
-                source: dataSource,
-                extraProps: this.extraProps,
-                component: this.dataComponent,
-              },
-            })
-          )
+          if (this._dataAdaptCondition(dataSource)) {
+            activeSlotCount++
+            slots.push(
+              h(Item, {
+                class:
+                  typeof this.itemClass === 'function'
+                    ? this.itemClass(dataSource)
+                    : this.itemClass,
+                props: {
+                  tag: this.itemTag,
+                  event: EVENT_TYPE.ITEM,
+                  horizontal: this.isHorizontal,
+                  uniqueKey: dataSource[this.dataKey],
+                  source: dataSource,
+                  extraProps: this.extraProps,
+                  component: this.dataComponent,
+                },
+              })
+            )
+          }
         }
         index++
       }
       return slots
     }
-    getRenderSlots(h: CreateElement) {
+    getRenderSlots(h: CreateElement): ReturnType<CreateElement>[] {
       const { Draggable, DraggablePolicy } = this
       const slots = this._getRenderSlots(h)
       const draggablePolicy = new DraggablePolicy(
@@ -221,7 +223,7 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
       if (this.disableComputeMargin) return 0
       return `${this.range.padFront}px 0px ${this.range.padBehind}px`
     }
-    render(this: any, h: CreateElement) {
+    render(this: any, h: CreateElement): ReturnType<CreateElement> {
       const { header, footer } = this.$slots
       const padding = this._calcPadding()
       return h(

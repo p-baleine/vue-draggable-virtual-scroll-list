@@ -29,9 +29,29 @@ import Item from "./Item.vue";
         // Make sure that elements of two lists have unique ids.
         items2: generateItems(500, 'lhs-'),
         items3: generateItems(100, 'rhs-'),
+        items4: generateItems(500, 'lhs-filtered').map((v: any, i: number) => {
+          if(i % 2 === 0) return v
+          return {...v,isFilterCondition:true,filtered: false}
+        }),
+        items5: generateItems(100, 'rhs-filtered').map((v: any, i: number) => {
+          if(i % 2 === 0) return v
+          return {...v,isFilterCondition:true,filtered: false}
+        }),
         Item
       }
     },
+    methods: {
+      toggleFilterItems() {
+        this.items4 = this.items4.map((v: any, i: number) => {
+          if(!v.isFilterCondition) return v
+          return {...v,filtered: !v.filtered}
+        })
+        this.items5 = this.items5.map((v: any, i: number) => {
+          if(!v.isFilterCondition) return v
+          return {...v, filtered: !v.filtered}
+        })
+      }
+    }
   });
 </script>
 
@@ -75,6 +95,40 @@ import Item from "./Item.vue";
           :keeps="20"
           :data-key="'id'"
           :data-sources="items3"
+          :data-component="Item"
+        >
+        </vue-draggable-virtual-scroll-list>
+      </div>
+    </section>
+    <section class="example">
+      <h2>Filtered Two List</h2>
+      <button  @click="toggleFilterItems"> filter </button>
+      <div class="container">
+        <vue-draggable-virtual-scroll-list
+          class="phrase-list"
+          group="phrase-list"
+          v-model="items4"
+          :size="50"
+          :keeps="20"
+          :data-key="'id'"
+          :itemHidden="(item) => {
+            return item.filtered
+          }"
+          :data-sources="items4"
+          :data-component="Item"
+        >
+        </vue-draggable-virtual-scroll-list>
+        <vue-draggable-virtual-scroll-list
+          class="phrase-list"
+          group="phrase-list"
+          v-model="items5"
+          :itemHidden="(item) => {
+            return item.filtered
+          }"
+          :size="50"
+          :keeps="20"
+          :data-key="'id'"
+          :data-sources="items5"
           :data-component="Item"
         >
         </vue-draggable-virtual-scroll-list>
