@@ -26,7 +26,7 @@ export default class DraggablePolicy<T> {
   ) {}
 
   // Find the real item from item.
-  public findRealItem(item: T) {
+  public findRealItem(item: T): T {
     const idx = this.dataSources.findIndex(
       (x: T) => x[this.dataKey] === item[this.dataKey]
     )
@@ -38,7 +38,7 @@ export default class DraggablePolicy<T> {
   public updatedSources(
     instruction: Instruction<T>,
     draggingRealIndex: number
-  ) {
+  ): Array<T> {
     const newList = [...this.dataSources]
 
     if ('moved' in instruction) {

@@ -8287,7 +8287,7 @@ class Logger {
 }
 var logger = new Logger({
     out: window.console,
-    level: Level.DEBUG,
+    level:  Level.ERROR ,
 });
 
 const instructionNames = ['moved', 'added', 'removed'];

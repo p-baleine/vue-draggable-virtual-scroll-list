@@ -8,10 +8,14 @@ import Item from "./Item.vue";
   function generateItems(length = 100, prefix = '') {
     return Array.from(
       { length },
-      (_, id) => ({
-        id: prefix ? `${prefix}-${id}` : id + '',
-        content: `${id}:${faker.name.findName()}`
-      }));
+      (_, id) => {
+        const domId = prefix ? `${prefix}-${id}` : id + ''
+        return {
+          id: domId,
+          content: `${domId}:${faker.name.findName()}`
+        }
+      }
+    );
   }
 
   export default Vue.extend({
