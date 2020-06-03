@@ -3,7 +3,7 @@ module.exports = {
     config
       .plugin('fork-ts-checker')
       .tap(args => {
-        args[0].tsconfig = './tsconfig.test.json';
+        args[0].tsconfig = './example/tsconfig.json';
         return args;
       });
   }

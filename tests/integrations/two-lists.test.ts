@@ -4,6 +4,8 @@ import Vue from 'vue'
 import DraggableVirtualList from '../../src'
 import { Item, generateItems } from '../utils'
 
+console.log(DraggableVirtualList)
+
 let lhs: { wrapper: any, items: any, propsData: any }
 let rhs: { wrapper: any, items: any, propsData: any }
 

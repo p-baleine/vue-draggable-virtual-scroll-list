@@ -8389,261 +8389,391 @@ const SLOT_TYPE = {
 };
 // A fuctory function which will return DraggableVirtualList constructor.
 function createBroker(VirtualList) {
-    let Broker = class Broker extends VirtualList {
-        constructor() {
-            super(...arguments);
-            this.vlsPolicy = new VirtualScrollListPolicy();
-        }
-        onDataSourcesChanged(newValue, oldValue) {
-            if (newValue.length !== oldValue.length) {
-                this.virtual.updateParam('uniqueIds', this.getUniqueIdFromDataSources());
-                this.virtual.handleDataSourcesChange();
+    let Broker = /** @class */ (() => {
+        let Broker = class Broker extends VirtualList {
+            constructor() {
+                super(...arguments);
+                this.vlsPolicy = new VirtualScrollListPolicy();
             }
-        }
-        _dataAdaptCondition(dataSource) {
-            if (!this.itemHidden)
-                return true;
-            return !this.itemHidden(dataSource);
-        }
-        _getRenderSlots(h) {
-            const slots = [];
-            const start = this.disabled ? 0 : this.range.start;
-            const end = this.disabled || this.range.end > this.dataSources.length
-                ? this.dataSources.length - 1
-                : this.range.end;
-            const sliceCount = end - start + 1;
-            let index = start;
-            let activeSlotCount = 0;
-            while (index <= this.dataSources.length - 1 &&
-                activeSlotCount < sliceCount) {
-                const dataSource = this.dataSources[index];
-                if (dataSource) {
-                    if (this._dataAdaptCondition(dataSource))
-                        activeSlotCount++;
-                    slots.push(h(Item, {
-                        class: typeof this.itemClass === 'function'
-                            ? this.itemClass(dataSource)
-                            : this.itemClass,
-                        props: {
-                            tag: this.itemTag,
-                            event: EVENT_TYPE.ITEM,
-                            horizontal: this.isHorizontal,
-                            uniqueKey: dataSource[this.dataKey],
-                            source: dataSource,
-                            extraProps: this.extraProps,
-                            component: this.dataComponent,
-                        },
-                    }));
+            onDataSourcesChanged(newValue, oldValue) {
+                if (newValue.length !== oldValue.length) {
+                    this.virtual.updateParam('uniqueIds', this.getUniqueIdFromDataSources());
+                    this.virtual.handleDataSourcesChange();
                 }
-                index++;
             }
-            return slots;
-        }
-        getRenderSlots(h) {
-            const { Draggable, DraggablePolicy } = this;
-            const slots = this._getRenderSlots(h);
-            const draggablePolicy = new DraggablePolicy(this.dataKey, this.dataSources, this.range);
-            if (this.vlsPolicy.draggingVNode) {
-                // ドラッグ中の要素を vls に差し込む
-                slots.splice(this.vlsPolicy.draggingIndex, 1, this.vlsPolicy.draggingVNode);
+            _dataAdaptCondition(dataSource) {
+                if (!this.itemHidden)
+                    return true;
+                return !this.itemHidden(dataSource);
             }
-            return [
-                h(Draggable, {
-                    props: {
-                        value: this.dataSources,
-                        // policy will find the real item from x.
-                        clone: (x) => draggablePolicy.findRealItem(x),
-                    },
+            _getRenderSlots(h) {
+                const slots = [];
+                const start = this.disabled ? 0 : this.range.start;
+                const end = this.disabled || this.range.end > this.dataSources.length
+                    ? this.dataSources.length - 1
+                    : this.range.end;
+                const sliceCount = end - start + 1;
+                let index = start;
+                let activeSlotCount = 0;
+                while (index <= this.dataSources.length - 1 &&
+                    activeSlotCount < sliceCount) {
+                    const dataSource = this.dataSources[index];
+                    if (dataSource) {
+                        if (this._dataAdaptCondition(dataSource)) {
+                            activeSlotCount++;
+                            slots.push(h(Item, {
+                                class: typeof this.itemClass === 'function'
+                                    ? this.itemClass(dataSource)
+                                    : this.itemClass,
+                                props: {
+                                    tag: this.itemTag,
+                                    event: EVENT_TYPE.ITEM,
+                                    horizontal: this.isHorizontal,
+                                    uniqueKey: dataSource[this.dataKey],
+                                    source: dataSource,
+                                    extraProps: this.extraProps,
+                                    component: this.dataComponent,
+                                },
+                            }));
+                        }
+                    }
+                    index++;
+                }
+                return slots;
+            }
+            getRenderSlots(h) {
+                const { Draggable, DraggablePolicy } = this;
+                const slots = this._getRenderSlots(h);
+                const draggablePolicy = new DraggablePolicy(this.dataKey, this.dataSources, this.range);
+                if (this.vlsPolicy.draggingVNode) {
+                    // ドラッグ中の要素を vls に差し込む
+                    slots.splice(this.vlsPolicy.draggingIndex, 1, this.vlsPolicy.draggingVNode);
+                }
+                return [
+                    h(Draggable, {
+                        props: {
+                            value: this.dataSources,
+                            // policy will find the real item from x.
+                            clone: (x) => draggablePolicy.findRealItem(x),
+                        },
+                        on: {
+                            // Convert Draggable's change events to input events.
+                            change: (e) => {
+                                if (instructionNames.some((n) => n in e)) {
+                                    this.$emit('input', draggablePolicy.updatedSources(e, this.vlsPolicy.draggingRealIndex));
+                                }
+                            },
+                            // Propagate Sortable events.
+                            ...sortableEventHandlers(this),
+                            start: (e) => {
+                                this.vlsPolicy.onDragStart(e, this.range, slots);
+                                this.$emit('start', e);
+                            },
+                            end: (e) => {
+                                this.vlsPolicy.onDragEnd();
+                                this.$emit('end', e);
+                            },
+                        },
+                        attrs: this.$attrs,
+                    }, slots),
+                ];
+            }
+            _calcPadding() {
+                if (this.disabled)
+                    return 0;
+                if (this.isHorizontal)
+                    return `0px ${this.range.padBehind}px 0px ${this.range.padFront}px`;
+                if (this.disableComputeMargin)
+                    return 0;
+                return `${this.range.padFront}px 0px ${this.range.padBehind}px`;
+            }
+            render(h) {
+                const { header, footer } = this.$slots;
+                const padding = this._calcPadding();
+                return h(this.rootTag, {
+                    ref: 'root',
                     on: {
-                        // Convert Draggable's change events to input events.
-                        change: (e) => {
-                            if (instructionNames.some((n) => n in e)) {
-                                this.$emit('input', draggablePolicy.updatedSources(e, this.vlsPolicy.draggingRealIndex));
-                            }
-                        },
-                        // Propagate Sortable events.
-                        ...sortableEventHandlers(this),
-                        start: (e) => {
-                            this.vlsPolicy.onDragStart(e, this.range, slots);
-                            this.$emit('start', e);
-                        },
-                        end: (e) => {
-                            this.vlsPolicy.onDragEnd();
-                            this.$emit('end', e);
-                        },
+                        '&scroll': this.onScroll,
                     },
-                    attrs: this.$attrs,
-                }, slots),
-            ];
-        }
-        _calcPadding() {
-            if (this.disabled)
-                return 0;
-            if (this.isHorizontal)
-                return `0px ${this.range.padBehind}px 0px ${this.range.padFront}px`;
-            if (this.disableComputeMargin)
-                return 0;
-            return `${this.range.padFront}px 0px ${this.range.padBehind}px`;
-        }
-        render(h) {
-            const { header, footer } = this.$slots;
-            const padding = this._calcPadding();
-            return h(this.rootTag, {
-                ref: 'root',
-                on: {
-                    '&scroll': this.onScroll,
-                },
-            }, [
-                // header slot.
-                header
-                    ? h(Slot, {
-                        class: this.headerClass,
-                        props: {
-                            tag: this.headerTag,
-                            event: EVENT_TYPE.SLOT,
-                            uniqueKey: SLOT_TYPE.HEADER,
+                }, [
+                    // header slot.
+                    header
+                        ? h(Slot, {
+                            class: this.headerClass,
+                            props: {
+                                tag: this.headerTag,
+                                event: EVENT_TYPE.SLOT,
+                                uniqueKey: SLOT_TYPE.HEADER,
+                            },
+                        }, header)
+                        : null,
+                    // main list.
+                    h(this.wrapTag, {
+                        class: this.wrapClass,
+                        attrs: {
+                            role: 'group',
                         },
-                    }, header)
-                    : null,
-                // main list.
-                h(this.wrapTag, {
-                    class: this.wrapClass,
-                    attrs: {
-                        role: 'group',
-                    },
-                    style: {
-                        padding: padding,
-                    },
-                }, this.getRenderSlots(h)),
-                // footer slot.
-                footer
-                    ? h(Slot, {
-                        class: this.footerClass,
-                        props: {
-                            tag: this.footerTag,
-                            event: EVENT_TYPE.SLOT,
-                            uniqueKey: SLOT_TYPE.FOOTER,
+                        style: {
+                            padding: padding,
                         },
-                    }, footer)
-                    : null,
-            ]);
-        }
-    };
-    __decorate([
-        Prop()
-    ], Broker.prototype, "size", void 0);
-    __decorate([
-        Prop()
-    ], Broker.prototype, "keeps", void 0);
-    __decorate([
-        Prop()
-    ], Broker.prototype, "dataKey", void 0);
-    __decorate([
-        Prop()
-    ], Broker.prototype, "dataSources", void 0);
-    __decorate([
-        Prop()
-    ], Broker.prototype, "dataComponent", void 0);
-    __decorate([
-        Prop({ default: '' })
-    ], Broker.prototype, "itemClass", void 0);
-    __decorate([
-        Prop()
-    ], Broker.prototype, "disabled", void 0);
-    __decorate([
-        Prop()
-    ], Broker.prototype, "itemHidden", void 0);
-    __decorate([
-        Prop({ default: 'div' })
-    ], Broker.prototype, "itemTag", void 0);
-    __decorate([
-        Prop()
-    ], Broker.prototype, "extraProps", void 0);
-    __decorate([
-        Prop()
-    ], Broker.prototype, "disableComputeMargin", void 0);
-    __decorate([
-        Inject()
-    ], Broker.prototype, "Draggable", void 0);
-    __decorate([
-        Inject()
-    ], Broker.prototype, "DraggablePolicy", void 0);
-    __decorate([
-        Watch('dataSources')
-    ], Broker.prototype, "onDataSourcesChanged", null);
-    Broker = __decorate([
-        Component
-    ], Broker);
+                    }, this.getRenderSlots(h)),
+                    // footer slot.
+                    footer
+                        ? h(Slot, {
+                            class: this.footerClass,
+                            props: {
+                                tag: this.footerTag,
+                                event: EVENT_TYPE.SLOT,
+                                uniqueKey: SLOT_TYPE.FOOTER,
+                            },
+                        }, footer)
+                        : null,
+                ]);
+            }
+        };
+        __decorate([
+            Prop()
+        ], Broker.prototype, "size", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "keeps", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "dataKey", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "dataSources", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "dataComponent", void 0);
+        __decorate([
+            Prop({ default: '' })
+        ], Broker.prototype, "itemClass", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "disabled", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "itemHidden", void 0);
+        __decorate([
+            Prop({ default: 'div' })
+        ], Broker.prototype, "itemTag", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "extraProps", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "disableComputeMargin", void 0);
+        __decorate([
+            Inject()
+        ], Broker.prototype, "Draggable", void 0);
+        __decorate([
+            Inject()
+        ], Broker.prototype, "DraggablePolicy", void 0);
+        __decorate([
+            Watch('dataSources')
+        ], Broker.prototype, "onDataSourcesChanged", null);
+        Broker = __decorate([
+            Component
+        ], Broker);
+        return Broker;
+    })();
     return Broker;
 }
 // Returns handlers which propagate sortable's events.
 
 const Broker = createBroker(dist);
 // SortableJS/Vue.Draggable + tangbc/vue-virtual-scroll-list.
-let DraggableVirtualList = class DraggableVirtualList extends Vue {
-    constructor() {
-        super(...arguments);
-        this.Draggable = Draggable;
-        this.DraggablePolicy = DraggablePolicy;
-    }
-    render(h) {
-        return h(Broker, {
-            props: this.$props,
-            attrs: this.$attrs,
-            on: {
-                // Propagate VirtualList's input event.
-                input: this.$emit.bind(this, 'input'),
-                // Propagate draggable.sortable's events.
-                ...sortableEventHandlers(this),
-            },
-        });
-    }
-};
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "value", void 0);
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "size", void 0);
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "keeps", void 0);
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "dataKey", void 0);
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "dataSources", void 0);
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "dataComponent", void 0);
-__decorate([
-    Prop({ default: '' })
-], DraggableVirtualList.prototype, "itemClass", void 0);
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "disabled", void 0);
-__decorate([
-    Provide()
-], DraggableVirtualList.prototype, "Draggable", void 0);
-__decorate([
-    Provide()
-], DraggableVirtualList.prototype, "DraggablePolicy", void 0);
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "itemHidden", void 0);
-__decorate([
-    Prop({ default: 'div' })
-], DraggableVirtualList.prototype, "itemTag", void 0);
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "extraProps", void 0);
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "disableComputeMargin", void 0);
-DraggableVirtualList = __decorate([
-    Component
-], DraggableVirtualList);
-var DraggableVirtualList$1 = DraggableVirtualList;
+let DraggableVirtualList = /** @class */ (() => {
+    let DraggableVirtualList = class DraggableVirtualList extends Vue {
+        constructor() {
+            super(...arguments);
+            this.Draggable = Draggable;
+            this.DraggablePolicy = DraggablePolicy;
+            this.sortableEventHandlers = sortableEventHandlers;
+        }
+        get filteredDatasources() {
+            if (!this.itemHidden)
+                return this.dataSources;
+            return this.dataSources.filter((data) => !this.itemHidden(data));
+        }
+        get fullAttributes() {
+            return {
+                ...this.$attrs,
+                ...this.$props,
+                dataSources: this.filteredDatasources,
+            };
+        }
+    };
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "value", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "size", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "keeps", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "dataKey", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "dataSources", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "dataComponent", void 0);
+    __decorate([
+        Prop({ default: '' })
+    ], DraggableVirtualList.prototype, "itemClass", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "disabled", void 0);
+    __decorate([
+        Provide()
+    ], DraggableVirtualList.prototype, "Draggable", void 0);
+    __decorate([
+        Provide()
+    ], DraggableVirtualList.prototype, "DraggablePolicy", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "itemHidden", void 0);
+    __decorate([
+        Prop({ default: 'div' })
+    ], DraggableVirtualList.prototype, "itemTag", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "extraProps", void 0);
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "disableComputeMargin", void 0);
+    DraggableVirtualList = __decorate([
+        Component({
+            components: {
+                Broker
+            }
+        })
+    ], DraggableVirtualList);
+    return DraggableVirtualList;
+})();
 
-export default DraggableVirtualList$1;
+function normalizeComponent(template, style, script, scopeId, isFunctionalTemplate, moduleIdentifier
+/* server only */
+, shadowMode, createInjector, createInjectorSSR, createInjectorShadow) {
+  if (typeof shadowMode !== 'boolean') {
+    createInjectorSSR = createInjector;
+    createInjector = shadowMode;
+    shadowMode = false;
+  } // Vue.extend constructor export interop.
+
+
+  const options = typeof script === 'function' ? script.options : script; // render functions
+
+  if (template && template.render) {
+    options.render = template.render;
+    options.staticRenderFns = template.staticRenderFns;
+    options._compiled = true; // functional template
+
+    if (isFunctionalTemplate) {
+      options.functional = true;
+    }
+  } // scopedId
+
+
+  if (scopeId) {
+    options._scopeId = scopeId;
+  }
+
+  let hook;
+
+  if (moduleIdentifier) {
+    // server build
+    hook = function (context) {
+      // 2.3 injection
+      context = context || // cached call
+      this.$vnode && this.$vnode.ssrContext || // stateful
+      this.parent && this.parent.$vnode && this.parent.$vnode.ssrContext; // functional
+      // 2.2 with runInNewContext: true
+
+      if (!context && typeof __VUE_SSR_CONTEXT__ !== 'undefined') {
+        context = __VUE_SSR_CONTEXT__;
+      } // inject component styles
+
+
+      if (style) {
+        style.call(this, createInjectorSSR(context));
+      } // register component module identifier for async chunk inference
+
+
+      if (context && context._registeredComponents) {
+        context._registeredComponents.add(moduleIdentifier);
+      }
+    }; // used by ssr in case component is cached and beforeCreate
+    // never gets called
+
+
+    options._ssrRegister = hook;
+  } else if (style) {
+    hook = shadowMode ? function (context) {
+      style.call(this, createInjectorShadow(context, this.$root.$options.shadowRoot));
+    } : function (context) {
+      style.call(this, createInjector(context));
+    };
+  }
+
+  if (hook) {
+    if (options.functional) {
+      // register for functional component in vue file
+      const originalRender = options.render;
+
+      options.render = function renderWithStyleInjection(h, context) {
+        hook.call(context);
+        return originalRender(h, context);
+      };
+    } else {
+      // inject component registration as beforeCreate hook
+      const existing = options.beforeCreate;
+      options.beforeCreate = existing ? [].concat(existing, hook) : [hook];
+    }
+  }
+
+  return script;
+}
+
+/* script */
+const __vue_script__ = DraggableVirtualList;
+
+/* template */
+var __vue_render__ = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('Broker',_vm._g(_vm._b({on:{"input":function($event){return _vm.$emit('input')}}},'Broker',_vm.fullAttributes,false),Object.assign({}, _vm.$listeners,_vm.sortableEventHandlers)))};
+var __vue_staticRenderFns__ = [];
+
+  /* style */
+  const __vue_inject_styles__ = undefined;
+  /* scoped */
+  const __vue_scope_id__ = undefined;
+  /* module identifier */
+  const __vue_module_identifier__ = undefined;
+  /* functional template */
+  const __vue_is_functional_template__ = false;
+  /* style inject */
+  
+  /* style inject SSR */
+  
+  /* style inject shadow dom */
+  
+
+  
+  const __vue_component__ = /*#__PURE__*/normalizeComponent(
+    { render: __vue_render__, staticRenderFns: __vue_staticRenderFns__ },
+    __vue_inject_styles__,
+    __vue_script__,
+    __vue_scope_id__,
+    __vue_is_functional_template__,
+    __vue_module_identifier__,
+    false,
+    undefined,
+    undefined,
+    undefined
+  );
+
+export default __vue_component__;
