@@ -16,6 +16,9 @@ module.exports = {
     '^.+\\.jsx?$': 'babel-jest',
     '^.+\\.tsx?$': 'ts-jest'
   },
+  "moduleNameMapper": {
+    "^~/(.+)": "<rootDir>/src/$1"
+  },
   testEnvironment: 'jest-environment-jsdom',
   // serializer for snapshots
   snapshotSerializers: [

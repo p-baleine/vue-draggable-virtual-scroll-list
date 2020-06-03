@@ -17,7 +17,6 @@ import VirtualScrollListProps from '~/mixins/VirtualScrollListProps'
 import Broker, { sortableEventHandlers } from './broker'
 import DraggablePolicy from './broker/draggable-policy'
 
-
 // SortableJS/Vue.Draggable + tangbc/vue-virtual-scroll-list.
 @Component({
   components: {
