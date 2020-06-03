@@ -23,3 +23,4 @@ export default class DraggablePolicy<T> {
     findRealItem(item: T): T;
     updatedSources(instruction: Instruction<T>, draggingRealIndex: number): Array<T>;
 }
+//# sourceMappingURL=draggable-policy.d.ts.map

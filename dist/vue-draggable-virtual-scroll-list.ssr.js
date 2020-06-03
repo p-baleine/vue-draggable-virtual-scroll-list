@@ -8214,104 +8214,7 @@ const Slot = Vue.component('virtual-list-slot', {
             },
         }, this.$slots.default);
     },
-});var Level;
-(function (Level) {
-    Level[Level["DEBUG"] = 10] = "DEBUG";
-    Level[Level["INFO"] = 20] = "INFO";
-    Level[Level["WARNING"] = 30] = "WARNING";
-    Level[Level["ERROR"] = 40] = "ERROR";
-    Level[Level["CRITICAL"] = 50] = "CRITICAL";
-})(Level || (Level = {}));
-const NAME = 'vdvsl';
-class Logger {
-    constructor({ out, level }) {
-        this.out = window.console;
-        this.level = Level.DEBUG;
-        this.out = out;
-        this.level = level;
-    }
-    debug(...args) {
-        if (Level.DEBUG < this.level) {
-            return;
-        }
-        this.out.log.apply(this.out, this.withPrefix(args));
-    }
-    info(...args) {
-        if (Level.INFO < this.level) {
-            return;
-        }
-        this.out.log.apply(this.out, this.withPrefix(args));
-    }
-    warning(...args) {
-        if (Level.WARNING < this.level) {
-            return;
-        }
-        this.out.warn.apply(this.out, this.withPrefix(args));
-    }
-    error(...args) {
-        if (Level.ERROR < this.level) {
-            return;
-        }
-        this.out.error.apply(this.out, this.withPrefix(args));
-    }
-    critical(...args) {
-        if (Level.CRITICAL < this.level) {
-            return;
-        }
-        this.out.error.apply(this.out, this.withPrefix(args));
-    }
-    withPrefix(args) {
-        return [`[${NAME}] `].concat(args);
-    }
-}
-var logger = new Logger({
-    out: window.console,
-    level:  Level.ERROR ,
-});const instructionNames = ['moved', 'added', 'removed'];
-// This class is responsible for ensuring Draggable policies.
-class DraggablePolicy {
-    constructor(dataKey, dataSources, visibleRange) {
-        this.dataKey = dataKey;
-        this.dataSources = dataSources;
-        this.visibleRange = visibleRange;
-    }
-    // Find the real item from item.
-    findRealItem(item) {
-        const idx = this.dataSources.findIndex((x) => x[this.dataKey] === item[this.dataKey]);
-        return this.dataSources[this.visibleRange.start + idx];
-    }
-    // Returns a new list which is created based on
-    // the update `instruction`.
-    updatedSources(instruction, draggingRealIndex) {
-        const newList = [...this.dataSources];
-        if ('moved' in instruction) {
-            const { newIndex } = instruction.moved;
-            const start = this.visibleRange.start + newIndex;
-            const deleteCount = 0;
-            const item = newList.splice(draggingRealIndex, 1)[0];
-            logger.debug(`Move by splicing start: ${start},` +
-                ` deleteCount: ${deleteCount}, item:`, item);
-            newList.splice(start, deleteCount, item);
-        }
-        else if ('added' in instruction) {
-            const { newIndex, element } = instruction.added;
-            const start = this.visibleRange.start + newIndex;
-            const deleteCount = 0;
-            const item = element;
-            logger.debug(`Add by splicing start: ${start},` +
-                ` deleteCount: ${deleteCount}, item:`, item);
-            newList.splice(start, deleteCount, item);
-        }
-        else if ('removed' in instruction) {
-            const { oldIndex } = instruction.removed;
-            const start = this.visibleRange.start + oldIndex;
-            const deleteCount = 1;
-            logger.debug(`Remove by splicing start: ${start},` + ` deleteCount: ${deleteCount}`);
-            newList.splice(start, deleteCount);
-        }
-        return newList;
-    }
-}class VirtualScrollListPolicy {
+});class VirtualScrollListPolicy {
     constructor() {
         this._draggingVNode = null;
     }
@@ -9133,7 +9036,104 @@ class DraggablePolicy {
   });
   return VirtualList;
 });
-});var SortableEvents;
+});var Level;
+(function (Level) {
+    Level[Level["DEBUG"] = 10] = "DEBUG";
+    Level[Level["INFO"] = 20] = "INFO";
+    Level[Level["WARNING"] = 30] = "WARNING";
+    Level[Level["ERROR"] = 40] = "ERROR";
+    Level[Level["CRITICAL"] = 50] = "CRITICAL";
+})(Level || (Level = {}));
+const NAME = 'vdvsl';
+class Logger {
+    constructor({ out, level }) {
+        this.out = window.console;
+        this.level = Level.DEBUG;
+        this.out = out;
+        this.level = level;
+    }
+    debug(...args) {
+        if (Level.DEBUG < this.level) {
+            return;
+        }
+        this.out.log.apply(this.out, this.withPrefix(args));
+    }
+    info(...args) {
+        if (Level.INFO < this.level) {
+            return;
+        }
+        this.out.log.apply(this.out, this.withPrefix(args));
+    }
+    warning(...args) {
+        if (Level.WARNING < this.level) {
+            return;
+        }
+        this.out.warn.apply(this.out, this.withPrefix(args));
+    }
+    error(...args) {
+        if (Level.ERROR < this.level) {
+            return;
+        }
+        this.out.error.apply(this.out, this.withPrefix(args));
+    }
+    critical(...args) {
+        if (Level.CRITICAL < this.level) {
+            return;
+        }
+        this.out.error.apply(this.out, this.withPrefix(args));
+    }
+    withPrefix(args) {
+        return [`[${NAME}] `].concat(args);
+    }
+}
+var logger = new Logger({
+    out: window.console,
+    level:  Level.ERROR ,
+});const instructionNames = ['moved', 'added', 'removed'];
+// This class is responsible for ensuring Draggable policies.
+class DraggablePolicy {
+    constructor(dataKey, dataSources, visibleRange) {
+        this.dataKey = dataKey;
+        this.dataSources = dataSources;
+        this.visibleRange = visibleRange;
+    }
+    // Find the real item from item.
+    findRealItem(item) {
+        const idx = this.dataSources.findIndex((x) => x[this.dataKey] === item[this.dataKey]);
+        return this.dataSources[this.visibleRange.start + idx];
+    }
+    // Returns a new list which is created based on
+    // the update `instruction`.
+    updatedSources(instruction, draggingRealIndex) {
+        const newList = [...this.dataSources];
+        if ('moved' in instruction) {
+            const { newIndex } = instruction.moved;
+            const start = this.visibleRange.start + newIndex;
+            const deleteCount = 0;
+            const item = newList.splice(draggingRealIndex, 1)[0];
+            logger.debug(`Move by splicing start: ${start},` +
+                ` deleteCount: ${deleteCount}, item:`, item);
+            newList.splice(start, deleteCount, item);
+        }
+        else if ('added' in instruction) {
+            const { newIndex, element } = instruction.added;
+            const start = this.visibleRange.start + newIndex;
+            const deleteCount = 0;
+            const item = element;
+            logger.debug(`Add by splicing start: ${start},` +
+                ` deleteCount: ${deleteCount}, item:`, item);
+            newList.splice(start, deleteCount, item);
+        }
+        else if ('removed' in instruction) {
+            const { oldIndex } = instruction.removed;
+            const start = this.visibleRange.start + oldIndex;
+            const deleteCount = 1;
+            logger.debug(`Remove by splicing start: ${start},` + ` deleteCount: ${deleteCount}`);
+            newList.splice(start, deleteCount);
+        }
+        return newList;
+    }
+}var SortableEvents;
 (function (SortableEvents) {
     SortableEvents[SortableEvents["start"] = 0] = "start";
     SortableEvents[SortableEvents["add"] = 1] = "add";
@@ -9156,10 +9156,6 @@ function sortableEventHandlers(context) {
 const EVENT_TYPE = {
     ITEM: 'item_resize',
     SLOT: 'slot_resize',
-};
-const SLOT_TYPE = {
-    HEADER: 'header',
-    FOOTER: 'footer',
 };
 // A fuctory function which will return DraggableVirtualList constructor.
 let Broker = /** @class */ (() => {
@@ -9245,58 +9241,6 @@ let Broker = /** @class */ (() => {
                     attrs: this.$attrs,
                 }, slots),
             ];
-        }
-        _calcPadding() {
-            if (this.disabled)
-                return 0;
-            if (this.isHorizontal)
-                return `0px ${this.range.padBehind}px 0px ${this.range.padFront}px`;
-            if (this.disableComputeMargin)
-                return 0;
-            return `${this.range.padFront}px 0px ${this.range.padBehind}px`;
-        }
-        render(h) {
-            const { header, footer } = this.$slots;
-            const padding = this._calcPadding();
-            return h(this.rootTag, {
-                ref: 'root',
-                on: {
-                    '&scroll': this.onScroll,
-                },
-            }, [
-                // header slot.
-                header
-                    ? h(Slot, {
-                        class: this.headerClass,
-                        props: {
-                            tag: this.headerTag,
-                            event: EVENT_TYPE.SLOT,
-                            uniqueKey: SLOT_TYPE.HEADER,
-                        },
-                    }, header)
-                    : null,
-                // main list.
-                h(this.wrapTag, {
-                    class: this.wrapClass,
-                    attrs: {
-                        role: 'group',
-                    },
-                    style: {
-                        padding: padding,
-                    },
-                }, this.getRenderSlots(h)),
-                // footer slot.
-                footer
-                    ? h(Slot, {
-                        class: this.footerClass,
-                        props: {
-                            tag: this.footerTag,
-                            event: EVENT_TYPE.SLOT,
-                            uniqueKey: SLOT_TYPE.FOOTER,
-                        },
-                    }, footer)
-                    : null,
-            ]);
         }
     };
     __decorate([
@@ -9449,7 +9393,7 @@ var __vue_staticRenderFns__ = [];
   /* scoped */
   const __vue_scope_id__ = undefined;
   /* module identifier */
-  const __vue_module_identifier__ = "data-v-f5003202";
+  const __vue_module_identifier__ = "data-v-39985f3b";
   /* functional template */
   const __vue_is_functional_template__ = false;
   /* style inject */

@@ -1,22 +1,16 @@
-import { CreateElement, VueConstructor, VNode } from 'vue'
-import {
-  Vue,
-  Component,
-  Inject,
-  Prop,
-  Watch,
-  Mixins,
-} from 'vue-property-decorator'
-import { Item, Slot } from '../components/Item'
+import { CreateElement, VueConstructor } from 'vue'
+import { Vue, Component, Inject, Watch, Mixins } from 'vue-property-decorator'
+import { Item } from '../components/Item'
 import VirtualScrollListProps from '~/mixins/VirtualScrollListProps'
-import DraggablePolicyCtor, {
-  Instruction,
-  instructionNames as draggableEvents,
-} from './draggable-policy'
+
 import VirtualScrollListPolicy, {
   DragStartEvent,
 } from './virtual-scroll-list-policy'
 import VirtualList from 'vue-virtual-scroll-list'
+import DraggablePolicyCtor, {
+  Instruction,
+  instructionNames as draggableEvents,
+} from './draggable-policy'
 
 export interface IDraggable<T> extends VueConstructor {
   props: {
@@ -196,76 +190,6 @@ export default class Broker<T> extends Mixins(
         slots
       ),
     ]
-  }
-
-  _calcPadding(this: any) {
-    if (this.disabled) return 0
-    if (this.isHorizontal)
-      return `0px ${this.range.padBehind}px 0px ${this.range.padFront}px`
-    if (this.disableComputeMargin) return 0
-    return `${this.range.padFront}px 0px ${this.range.padBehind}px`
-  }
-  render(this: any, h: CreateElement): ReturnType<CreateElement> {
-    const { header, footer } = this.$slots
-    const padding = this._calcPadding()
-    return h(
-      this.rootTag,
-      {
-        ref: 'root',
-        on: {
-          '&scroll': this.onScroll,
-        },
-      },
-      [
-        // header slot.
-        header
-          ? h(
-              Slot,
-              {
-                class: this.headerClass,
-                props: {
-                  tag: this.headerTag,
-                  event: EVENT_TYPE.SLOT,
-                  uniqueKey: SLOT_TYPE.HEADER,
-                },
-              },
-              header
-            )
-          : null,
-
-        // main list.
-        h(
-          this.wrapTag,
-          {
-            class: this.wrapClass,
-
-            attrs: {
-              role: 'group',
-            },
-            style: {
-              padding: padding,
-            },
-          },
-          this.getRenderSlots(h)
-        ),
-
-        // footer slot.
-        footer
-          ? h(
-              Slot,
-              {
-                class: this.footerClass,
-                props: {
-                  tag: this.footerTag,
-                  event: EVENT_TYPE.SLOT,
-                  uniqueKey: SLOT_TYPE.FOOTER,
-                },
-              },
-              footer
-            )
-          : null,
-      ]
-    )
   }
 }
 

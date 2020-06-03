@@ -12,3 +12,4 @@ export default class VirtualScrollListProps<T> extends Vue {
     extraProps?: Record<string, any>;
     disableComputeMargin?: boolean;
 }
+//# sourceMappingURL=VirtualScrollListProps.d.ts.map

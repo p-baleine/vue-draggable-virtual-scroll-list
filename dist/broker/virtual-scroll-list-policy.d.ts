@@ -15,3 +15,4 @@ export default class VirtualScrollListPolicy {
     onDragStart(e: DragStartEvent, range: VirtualRange, slots: Array<VNode>): void;
     onDragEnd(): void;
 }
+//# sourceMappingURL=virtual-scroll-list-policy.d.ts.map

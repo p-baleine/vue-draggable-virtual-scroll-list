@@ -18,3 +18,4 @@ export declare const Slot: import("vue/types/vue").ExtendedVue<Vue, unknown, unk
     tag: string;
     horizontal: boolean;
 }>;
+//# sourceMappingURL=Item.d.ts.map

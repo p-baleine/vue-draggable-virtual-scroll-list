@@ -1,8 +1,8 @@
 import { CreateElement, VueConstructor } from 'vue';
 import { Vue } from 'vue-property-decorator';
-import VirtualScrollListProps from '~/mixins/VirtualScrollListProps';
-import DraggablePolicyCtor, { Instruction } from './draggable-policy';
+import VirtualScrollListProps from "../mixins/VirtualScrollListProps";
 import VirtualList from 'vue-virtual-scroll-list';
+import DraggablePolicyCtor, { Instruction } from "./draggable-policy";
 export interface IDraggable<T> extends VueConstructor {
     props: {
         value: Array<T>;
@@ -35,7 +35,6 @@ export default class Broker<T> extends Broker_base {
     private vlsPolicy;
     _getRenderSlots(h: CreateElement): any[];
     getRenderSlots(h: CreateElement): ReturnType<CreateElement>[];
-    _calcPadding(this: any): string | 0;
-    render(this: any, h: CreateElement): ReturnType<CreateElement>;
 }
 export {};
+//# sourceMappingURL=index.d.ts.map
