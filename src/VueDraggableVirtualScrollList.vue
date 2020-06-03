@@ -8,20 +8,19 @@
 </template>
 
 <script lang="ts">
-import { CreateElement } from 'vue'
+import Vue, { CreateElement } from 'vue'
 import Draggable from 'vuedraggable'
 import VirtualList from 'vue-virtual-scroll-list'
-import { Vue, Component, Prop, Provide } from 'vue-property-decorator'
+import { Component, Prop, Provide } from 'vue-property-decorator'
 
-import createBroker, { sortableEventHandlers } from './broker'
+import Broker, { sortableEventHandlers } from './broker'
 import DraggablePolicy from './broker/draggable-policy'
 
-const Broker = createBroker(VirtualList)
 
 // SortableJS/Vue.Draggable + tangbc/vue-virtual-scroll-list.
 @Component({
   components: {
-    Broker
+    Broker: Broker as any
   }
 })
 export default class DraggableVirtualList<T> extends Vue {
