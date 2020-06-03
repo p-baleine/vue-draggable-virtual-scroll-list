@@ -1,8 +1,14 @@
-// @ts-nocheck
 import { CreateElement, VueConstructor, VNode } from 'vue'
-import { Vue, Component, Inject, Prop, Watch } from 'vue-property-decorator'
+import {
+  Vue,
+  Component,
+  Inject,
+  Prop,
+  Watch,
+  Mixins,
+} from 'vue-property-decorator'
 import { Item, Slot } from '../components/Item'
-import logger from '../logger'
+import VirtualScrollListProps from '~/mixins/VirtualScrollListProps'
 import DraggablePolicyCtor, {
   Instruction,
   instructionNames as draggableEvents,
@@ -66,23 +72,12 @@ const SLOT_TYPE = {
 const NAME = 'virtual-list'
 // A fuctory function which will return DraggableVirtualList constructor.
 @Component
-export default class Broker<T> extends VirtualList {
+export default class Broker<T> extends Mixins(
+  VirtualList,
+  VirtualScrollListProps
+) {
   // Properties of vue-virtual-scroll-list
   // See: https://github.com/tangbc/vue-virtual-scroll-list#props-type
-  @Prop() size?: number
-  @Prop() keeps!: number
-  @Prop() dataKey!: keyof T
-  @Prop() dataSources!: Array<T>
-  @Prop() dataComponent!: Vue
-
-  @Prop({ default: '' }) itemClass?:
-    | string
-    | (<Source>(source: Source) => string)
-  @Prop() disabled?: boolean
-  @Prop() itemHidden?: (source: T) => boolean
-  @Prop({ default: 'div' }) itemTag?: string
-  @Prop() extraProps?: Record<string, any>
-  @Prop() disableComputeMargin?: boolean
 
   @Inject() Draggable!: IDraggable<T>
   @Inject() DraggablePolicy!: typeof DraggablePolicyCtor

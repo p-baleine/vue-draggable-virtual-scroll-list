@@ -1,1 +1,1 @@
-export { default } from './vue-draggable-virtual-scroll-list.vue';
+export { default } from './VueDraggableVirtualScrollList.vue';

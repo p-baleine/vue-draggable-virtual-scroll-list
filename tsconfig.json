@@ -8,6 +8,11 @@
     "target": "esnext",
     "module": "esnext",
     "moduleResolution": "node",
+    "baseUrl": "./",
+    "paths": {
+      "~" : ["./src"],
+      "~/*" : ["./src/*"],
+    },
     "allowSyntheticDefaultImports": true,
     "lib": [
       "es2019",

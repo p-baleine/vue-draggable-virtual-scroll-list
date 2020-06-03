@@ -30,7 +30,7 @@ const baseConfig = {
       alias({
         resolve: ['.js', '.jsx', '.ts', '.tsx', '.vue'],
         entries: {
-          '@': path.resolve(projectRoot, 'src'),
+          '~': path.resolve(projectRoot, 'src'),
         },
       }),
     ],

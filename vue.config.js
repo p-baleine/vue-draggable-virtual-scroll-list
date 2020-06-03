@@ -1,3 +1,4 @@
+const path = require('path')
 module.exports = {
   chainWebpack: config => {
     config
@@ -6,5 +7,6 @@ module.exports = {
         args[0].tsconfig = './example/tsconfig.json';
         return args;
       });
-  }
+    config.resolve.alias.set('~', path.join(__dirname, 'src/'));
+  },
 };
