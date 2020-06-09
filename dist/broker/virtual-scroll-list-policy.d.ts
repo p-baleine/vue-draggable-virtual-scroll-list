@@ -29,5 +29,6 @@ export default class VirtualScrollListPolicy<Source extends {
     set dataSources(value: Source[]);
     onDragStart(e: DragStartEvent, range: VirtualRange, slots: Array<VNode>): void;
     onDragEnd(): void;
+    private _calcRealIndex;
 }
 //# sourceMappingURL=virtual-scroll-list-policy.d.ts.map
