@@ -1,5 +1,12 @@
 import { CreateElement, VueConstructor } from 'vue'
-import { Vue, Component, Inject, Watch, Mixins } from 'vue-property-decorator'
+import {
+  Vue,
+  Component,
+  Inject,
+  Watch,
+  Mixins,
+  Prop,
+} from 'vue-property-decorator'
 import { Item } from '../components/Item'
 import VirtualScrollListProps from '~/mixins/VirtualScrollListProps'
 
@@ -76,13 +83,29 @@ export default class Broker<T> extends Mixins(
   @Inject() Draggable!: IDraggable<T>
   @Inject() DraggablePolicy!: typeof DraggablePolicyCtor
 
-  @Watch('dataSources')
-  onDataSourcesChanged(this: any, newValue: string, oldValue: string) {
-    if (newValue.length !== oldValue.length) {
+  @Watch('dataSources', { immediate: true })
+  onDataSourcesChanged(this: any, newValue: T[], oldValue: T[]): void {
+    if (oldValue && newValue.length !== oldValue.length) {
       this.virtual.updateParam('uniqueIds', this.getUniqueIdFromDataSources())
       this.virtual.handleDataSourcesChange()
     }
+    this.vlsPolicy.dataSources = newValue
   }
+  @Watch('indexMap', { immediate: true })
+  onChangeIndexMap(this: any, _newValue: object, _oldValue: object): void {
+    this.vlsPolicy.indexMap = _newValue
+  }
+  @Watch('dataKey', { immediate: true })
+  onChangeDataKey(
+    this: any,
+    _newValue: string | number,
+    _oldValue: string
+  ): void {
+    this.vlsPolicy.dataKey = _newValue
+  }
+
+  @Prop() indexMap: { [id: string]: number }
+  @Prop() orgDataSources: T[]
 
   private range: {
     start: number
@@ -137,7 +160,9 @@ export default class Broker<T> extends Mixins(
     const draggablePolicy = new DraggablePolicy(
       this.dataKey,
       this.dataSources,
-      this.range
+      this.range,
+      this.orgDataSources,
+      this.indexMap
     )
 
     if (this.vlsPolicy.draggingVNode) {

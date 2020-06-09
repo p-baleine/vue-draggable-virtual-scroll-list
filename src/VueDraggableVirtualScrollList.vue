@@ -28,16 +28,29 @@ export default class DraggableVirtualList<T> extends VirtualScrollListProps<T> {
   @Provide() Draggable = Draggable
   @Provide() DraggablePolicy = DraggablePolicy
 
-  get filteredDatasources() {
+  get filteredDataSources() {
     if (!this.itemHidden) return this.dataSources
     return this.dataSources.filter((data) => !this.itemHidden(data))
   }
 
+  get indexMap() {
+    if (!this.dataKey) return {}
+    return this.dataSources.reduce((result, dataSource, index)=>{
+      return {
+        ...result,
+        [dataSource[this.dataKey]]: index
+      }
+    },{})
+  }
+
   get fullAttributes() {
+    const {dataSources, ...rest } = this.$props
     return {
       ...this.$attrs,
-      ...this.$props,
-      dataSources: this.filteredDatasources,
+      ...rest,
+      dataSources: this.filteredDataSources,
+      orgDataSources: dataSources,
+      indexMap: this.indexMap
     }
   }
 
