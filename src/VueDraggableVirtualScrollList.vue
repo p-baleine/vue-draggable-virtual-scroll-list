@@ -38,6 +38,7 @@ export default class DraggableVirtualList<T> extends VirtualScrollListProps<T> {
     return this.dataSources.reduce((result, dataSource, index)=>{
       return {
         ...result,
+        // @ts-ignore
         [dataSource[this.dataKey]]: index
       }
     },{})
