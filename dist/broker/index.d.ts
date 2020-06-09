@@ -2,7 +2,8 @@ import { CreateElement, VueConstructor } from 'vue';
 import { Vue } from 'vue-property-decorator';
 import VirtualScrollListProps from "../mixins/VirtualScrollListProps";
 import VirtualList from 'vue-virtual-scroll-list';
-import DraggablePolicyCtor, { Instruction } from "./draggable-policy";
+import type { Instruction } from "./draggable-policy";
+import DraggablePolicyCtor from "./draggable-policy";
 export interface IDraggable<T> extends VueConstructor {
     props: {
         value: Array<T>;
@@ -30,8 +31,6 @@ export default class Broker<T> extends Broker_base {
     Draggable: IDraggable<T>;
     DraggablePolicy: typeof DraggablePolicyCtor;
     onDataSourcesChanged(this: any, newValue: T[], oldValue: T[]): void;
-    onChangeIndexMap(this: any, _newValue: object, _oldValue: object): void;
-    onChangeDataKey(this: any, _newValue: string | number, _oldValue: string): void;
     indexMap: {
         [id: string]: number;
     };

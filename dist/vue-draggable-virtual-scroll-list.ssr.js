@@ -8217,7 +8217,6 @@ const Slot = Vue.component('virtual-list-slot', {
 });class VirtualScrollListPolicy {
     constructor() {
         this._draggingVNode = null;
-        this._indexMap = null;
     }
     get draggingVNode() {
         return this._draggingVNode;
@@ -8227,24 +8226,6 @@ const Slot = Vue.component('virtual-list-slot', {
     }
     get draggingRealIndex() {
         return this._draggingRealIndex;
-    }
-    get indexMap() {
-        return this._indexMap;
-    }
-    set indexMap(value) {
-        this._indexMap = value;
-    }
-    get dataKey() {
-        return this._dataKey;
-    }
-    set dataKey(value) {
-        this._dataKey = value;
-    }
-    get dataSources() {
-        return this._dataSources;
-    }
-    set dataSources(value) {
-        this._dataSources = value;
     }
     onDragStart(e, range, slots) {
         this._draggingIndex = e.oldIndex;
@@ -9208,13 +9189,6 @@ let Broker = /** @class */ (() => {
                 this.virtual.updateParam('uniqueIds', this.getUniqueIdFromDataSources());
                 this.virtual.handleDataSourcesChange();
             }
-            this.vlsPolicy.dataSources = newValue;
-        }
-        onChangeIndexMap(_newValue, _oldValue) {
-            this.vlsPolicy.indexMap = _newValue;
-        }
-        onChangeDataKey(_newValue, _oldValue) {
-            this.vlsPolicy.dataKey = _newValue;
         }
         _getRenderSlots(h) {
             const slots = [];
@@ -9296,12 +9270,6 @@ let Broker = /** @class */ (() => {
     __decorate([
         Watch('dataSources', { immediate: true })
     ], Broker.prototype, "onDataSourcesChanged", null);
-    __decorate([
-        Watch('indexMap', { immediate: true })
-    ], Broker.prototype, "onChangeIndexMap", null);
-    __decorate([
-        Watch('dataKey', { immediate: true })
-    ], Broker.prototype, "onChangeDataKey", null);
     __decorate([
         Prop()
     ], Broker.prototype, "indexMap", void 0);

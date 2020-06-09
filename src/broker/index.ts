@@ -9,13 +9,11 @@ import {
 } from 'vue-property-decorator'
 import { Item } from '../components/Item'
 import VirtualScrollListProps from '~/mixins/VirtualScrollListProps'
-
-import VirtualScrollListPolicy, {
-  DragStartEvent,
-} from './virtual-scroll-list-policy'
+import type { DragStartEvent } from './virtual-scroll-list-policy'
+import VirtualScrollListPolicy from './virtual-scroll-list-policy'
 import VirtualList from 'vue-virtual-scroll-list'
+import type { Instruction } from './draggable-policy'
 import DraggablePolicyCtor, {
-  Instruction,
   instructionNames as draggableEvents,
 } from './draggable-policy'
 
@@ -65,12 +63,6 @@ const EVENT_TYPE = {
   SLOT: 'slot_resize',
 }
 
-const SLOT_TYPE = {
-  HEADER: 'header', // string value also use for aria role attribute.
-  FOOTER: 'footer',
-}
-
-const NAME = 'virtual-list'
 // A fuctory function which will return DraggableVirtualList constructor.
 @Component
 export default class Broker<T> extends Mixins(
@@ -89,19 +81,6 @@ export default class Broker<T> extends Mixins(
       this.virtual.updateParam('uniqueIds', this.getUniqueIdFromDataSources())
       this.virtual.handleDataSourcesChange()
     }
-    this.vlsPolicy.dataSources = newValue
-  }
-  @Watch('indexMap', { immediate: true })
-  onChangeIndexMap(this: any, _newValue: object, _oldValue: object): void {
-    this.vlsPolicy.indexMap = _newValue
-  }
-  @Watch('dataKey', { immediate: true })
-  onChangeDataKey(
-    this: any,
-    _newValue: string | number,
-    _oldValue: string
-  ): void {
-    this.vlsPolicy.dataKey = _newValue
   }
 
   @Prop() indexMap: { [id: string]: number }
