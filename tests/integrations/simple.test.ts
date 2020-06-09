@@ -1,3 +1,6 @@
+import "core-js/stable";
+import "regenerator-runtime/runtime";
+
 import { createLocalVue, mount } from '@vue/test-utils'
 import Vue from 'vue'
 
@@ -5,6 +8,7 @@ import DraggableVirtualList from '../../src'
 import { Item, generateItems } from '../utils'
 
 let wrapper: any
+let brokerWrapper: any
 let itemHiddenWrapper: any
 let draggableWrapper: any
 let items: any
@@ -31,6 +35,7 @@ describe('simple', () => {
       localVue,
       propsData,
     })
+    brokerWrapper = wrapper.find({ name: 'broker' })
     const cPropsData: any = {
       ...propsData,
       itemHidden: (source: { id: number }) => {
@@ -49,12 +54,13 @@ describe('simple', () => {
   })
 
   afterEach(() => {
+    brokerWrapper.destroy()
     draggableWrapper.destroy()
     wrapper.destroy()
     itemHiddenWrapper.destroy()
   })
 
-  it('keeos個のdataComponentsを描画すること', () => {
+  it('keeps個のdataComponentsを描画すること', () => {
     const children = wrapper.findAll('.phrase')
     for (let i = 0; i < propsData.keeps; ++i) {
       expect(children.at(i).text()).toEqual(
@@ -79,16 +85,7 @@ describe('simple', () => {
 
   it('itemHiddenにfiter関数を入れると、有効なslotがカウントサイズになること', () => {
     const children = itemHiddenWrapper.findAll('.dynamic-class')
-    for (let i = 0; i < children.length; ++i) {
-      const child = children.at(i)
-      const expectedClass = child.classes().join(' ')
-      if(i == 2) {
-        expect(expectedClass).toContain(`hidden`)
-      } else {
-        expect(expectedClass).not.toContain(`hidden`)
-      }
-    }
-    expect(children.length).toBe(21)
+    expect(children.length).toBe(20)
   })
 
   async function triggerScrollEvents(offset: number) {
@@ -149,7 +146,7 @@ describe('simple', () => {
           const newIndex = 2
           await applyStartDragEvent(oldIndex, newIndex)
           await applyUpdateDragEvent(oldIndex, newIndex)
-          const newValue = wrapper.emitted().input[0][0]
+          const newValue = brokerWrapper.emitted().input[0][0]
           expect(newValue[newIndex]).toEqual(items[oldIndex])
         })
       })
@@ -161,7 +158,7 @@ describe('simple', () => {
           await triggerScrollEvents(10)
           await applyStartDragEvent(oldIndex, newIndex)
           await applyUpdateDragEvent(oldIndex, newIndex)
-          const newValue = wrapper.emitted().input[0][0]
+          const newValue = brokerWrapper.emitted().input[0][0]
           expect(newValue[newIndex + 10]).toEqual(items[oldIndex + 10])
         })
       })
@@ -173,7 +170,7 @@ describe('simple', () => {
           await applyStartDragEvent(oldIndex, newIndex)
           await triggerScrollEvents(50)
           await applyUpdateDragEvent(oldIndex, newIndex)
-          const newValue = wrapper.emitted().input[0][0]
+          const newValue = brokerWrapper.emitted().input[0][0]
           expect(newValue[newIndex + 50]).toEqual(items[oldIndex])
         })
       })
@@ -193,7 +190,7 @@ describe('simple', () => {
           const startEventEmittedFromDraggable = draggableWrapper.emitted()
             .start[0][0]
 
-          expect(wrapper.emitted().start[0][0]).toBe(
+          expect(brokerWrapper.emitted().start[0][0]).toBe(
             startEventEmittedFromDraggable
           )
         })

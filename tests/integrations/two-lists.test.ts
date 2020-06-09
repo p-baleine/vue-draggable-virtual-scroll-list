@@ -1,3 +1,6 @@
+import "core-js/stable";
+import "regenerator-runtime/runtime";
+
 import { mount } from '@vue/test-utils'
 import Vue from 'vue'
 
@@ -22,7 +25,7 @@ describe('two-lists', () => {
     const wrapper = mount(DraggableVirtualList, {
       attachToDocument: true,
       propsData
-    })
+    }).find({name: 'broker'})
     return { wrapper, items, propsData }
   }
 

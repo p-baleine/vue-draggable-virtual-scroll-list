@@ -9,7 +9,10 @@ describe('Broker', () => {
         const items = generateItems()
         const visibleRange = { start: 15 };
         const draggablePolicy = new DraggablePolicy(
-          'id', (items as any), visibleRange);
+          'id', (items as any), visibleRange,items,items.reduce((result,item,index) => ({
+            ...result,
+            [item.id]: index
+          }),{}));
         const item = items[10];
         const idx = items.findIndex(x => x.id === item.id)
         expect(draggablePolicy.findRealItem(item))

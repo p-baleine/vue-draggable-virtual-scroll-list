@@ -17,7 +17,8 @@ module.exports = {
     '^.+\\.tsx?$': 'ts-jest'
   },
   "moduleNameMapper": {
-    "^~/(.+)": "<rootDir>/src/$1"
+    "^~/(.+)": "<rootDir>/src/$1",
+    '^vue$': 'vue/dist/vue.common.dev.js'
   },
   testEnvironment: 'jest-environment-jsdom',
   // serializer for snapshots
