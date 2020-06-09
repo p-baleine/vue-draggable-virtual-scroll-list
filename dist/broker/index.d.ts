@@ -29,7 +29,13 @@ declare const Broker_base: import("vue-class-component/lib/declarations").VueCla
 export default class Broker<T> extends Broker_base {
     Draggable: IDraggable<T>;
     DraggablePolicy: typeof DraggablePolicyCtor;
-    onDataSourcesChanged(this: any, newValue: string, oldValue: string): void;
+    onDataSourcesChanged(this: any, newValue: T[], oldValue: T[]): void;
+    onChangeIndexMap(this: any, _newValue: object, _oldValue: object): void;
+    onChangeDataKey(this: any, _newValue: string | number, _oldValue: string): void;
+    indexMap: {
+        [id: string]: number;
+    };
+    orgDataSources: T[];
     private range;
     private isHorizontal;
     private vlsPolicy;

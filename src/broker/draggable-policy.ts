@@ -47,9 +47,9 @@ export default class DraggablePolicy<T> {
       const { newIndex } = instruction.moved
       const start = this.visibleRange.start + newIndex
       const deleteCount = 0
-      const indexForRemove = draggingRealIndex
+      const indexForRemove = this._calcRealIndex(draggingRealIndex)
       const indexForInsert = this._calcRealIndex(start)
-      const item = newList.splice(this._calcRealIndex(indexForRemove), 1)[0]
+      const item = newList.splice(indexForRemove, 1)[0]
       logger.debug(
         `Move by splicing start: ${start},` +
           ` deleteCount: ${deleteCount}, item:`,

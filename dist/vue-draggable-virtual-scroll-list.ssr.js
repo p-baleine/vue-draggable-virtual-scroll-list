@@ -8217,6 +8217,7 @@ const Slot = Vue.component('virtual-list-slot', {
 });class VirtualScrollListPolicy {
     constructor() {
         this._draggingVNode = null;
+        this._indexMap = null;
     }
     get draggingVNode() {
         return this._draggingVNode;
@@ -8227,9 +8228,28 @@ const Slot = Vue.component('virtual-list-slot', {
     get draggingRealIndex() {
         return this._draggingRealIndex;
     }
+    get indexMap() {
+        return this._indexMap;
+    }
+    set indexMap(value) {
+        this._indexMap = value;
+    }
+    get dataKey() {
+        return this._dataKey;
+    }
+    set dataKey(value) {
+        this._dataKey = value;
+    }
+    get dataSources() {
+        return this._dataSources;
+    }
+    set dataSources(value) {
+        this._dataSources = value;
+    }
     onDragStart(e, range, slots) {
         this._draggingIndex = e.oldIndex;
-        this._draggingRealIndex = range.start + e.oldIndex;
+        const relativeIndex = range.start + e.oldIndex;
+        this._draggingRealIndex = relativeIndex;
         this._draggingVNode = slots[e.oldIndex];
     }
     onDragEnd() {
@@ -9092,10 +9112,12 @@ var logger = new Logger({
 });const instructionNames = ['moved', 'added', 'removed'];
 // This class is responsible for ensuring Draggable policies.
 class DraggablePolicy {
-    constructor(dataKey, dataSources, visibleRange) {
+    constructor(dataKey, dataSources, visibleRange, orgDataSources, indexMap) {
         this.dataKey = dataKey;
         this.dataSources = dataSources;
         this.visibleRange = visibleRange;
+        this.orgDataSources = orgDataSources;
+        this.indexMap = indexMap;
     }
     // Find the real item from item.
     findRealItem(item) {
@@ -9105,15 +9127,19 @@ class DraggablePolicy {
     // Returns a new list which is created based on
     // the update `instruction`.
     updatedSources(instruction, draggingRealIndex) {
-        const newList = [...this.dataSources];
+        const newList = [...this.orgDataSources];
         if ('moved' in instruction) {
             const { newIndex } = instruction.moved;
             const start = this.visibleRange.start + newIndex;
             const deleteCount = 0;
-            const item = newList.splice(draggingRealIndex, 1)[0];
+            const indexForRemove = this._calcRealIndex(draggingRealIndex);
+            const indexForInsert = this._calcRealIndex(start);
+            const item = newList.splice(indexForRemove, 1)[0];
             logger.debug(`Move by splicing start: ${start},` +
                 ` deleteCount: ${deleteCount}, item:`, item);
-            newList.splice(start, deleteCount, item);
+            logger.debug(`real index removed: ${indexForRemove},` +
+                ` real index inserted: ${indexForInsert}, item:`, item);
+            newList.splice(indexForInsert, deleteCount, item);
         }
         else if ('added' in instruction) {
             const { newIndex, element } = instruction.added;
@@ -9122,16 +9148,27 @@ class DraggablePolicy {
             const item = element;
             logger.debug(`Add by splicing start: ${start},` +
                 ` deleteCount: ${deleteCount}, item:`, item);
-            newList.splice(start, deleteCount, item);
+            newList.splice(this._calcRealInsertIndex(start), deleteCount, item);
         }
         else if ('removed' in instruction) {
             const { oldIndex } = instruction.removed;
             const start = this.visibleRange.start + oldIndex;
             const deleteCount = 1;
             logger.debug(`Remove by splicing start: ${start},` + ` deleteCount: ${deleteCount}`);
-            newList.splice(start, deleteCount);
+            newList.splice(this._calcRealIndex(start), deleteCount);
         }
         return newList;
+    }
+    _calcRealIndex(relativeIndex) {
+        if (this.dataSources.length <= relativeIndex)
+            return relativeIndex;
+        return this.indexMap[this.dataSources[relativeIndex][this.dataKey]];
+    }
+    _calcRealInsertIndex(relativeIndex) {
+        if (0 >= relativeIndex)
+            return relativeIndex;
+        return (this.indexMap[this.dataSources[relativeIndex - 1][this.dataKey]] +
+            1);
     }
 }var SortableEvents;
 (function (SortableEvents) {
@@ -9167,10 +9204,17 @@ let Broker = /** @class */ (() => {
             this.vlsPolicy = new VirtualScrollListPolicy();
         }
         onDataSourcesChanged(newValue, oldValue) {
-            if (newValue.length !== oldValue.length) {
+            if (oldValue && newValue.length !== oldValue.length) {
                 this.virtual.updateParam('uniqueIds', this.getUniqueIdFromDataSources());
                 this.virtual.handleDataSourcesChange();
             }
+            this.vlsPolicy.dataSources = newValue;
+        }
+        onChangeIndexMap(_newValue, _oldValue) {
+            this.vlsPolicy.indexMap = _newValue;
+        }
+        onChangeDataKey(_newValue, _oldValue) {
+            this.vlsPolicy.dataKey = _newValue;
         }
         _getRenderSlots(h) {
             const slots = [];
@@ -9208,7 +9252,7 @@ let Broker = /** @class */ (() => {
         getRenderSlots(h) {
             const { Draggable, DraggablePolicy } = this;
             const slots = this._getRenderSlots(h);
-            const draggablePolicy = new DraggablePolicy(this.dataKey, this.dataSources, this.range);
+            const draggablePolicy = new DraggablePolicy(this.dataKey, this.dataSources, this.range, this.orgDataSources, this.indexMap);
             if (this.vlsPolicy.draggingVNode) {
                 // ドラッグ中の要素を vls に差し込む
                 slots.splice(this.vlsPolicy.draggingIndex, 1, this.vlsPolicy.draggingVNode);
@@ -9250,8 +9294,20 @@ let Broker = /** @class */ (() => {
         Inject()
     ], Broker.prototype, "DraggablePolicy", void 0);
     __decorate([
-        Watch('dataSources')
+        Watch('dataSources', { immediate: true })
     ], Broker.prototype, "onDataSourcesChanged", null);
+    __decorate([
+        Watch('indexMap', { immediate: true })
+    ], Broker.prototype, "onChangeIndexMap", null);
+    __decorate([
+        Watch('dataKey', { immediate: true })
+    ], Broker.prototype, "onChangeDataKey", null);
+    __decorate([
+        Prop()
+    ], Broker.prototype, "indexMap", void 0);
+    __decorate([
+        Prop()
+    ], Broker.prototype, "orgDataSources", void 0);
     Broker = __decorate([
         Component
     ], Broker);
@@ -9270,16 +9326,30 @@ let DraggableVirtualList = /** @class */ (() => {
                 ...sortableEventHandlers
             };
         }
-        get filteredDatasources() {
+        get filteredDataSources() {
             if (!this.itemHidden)
                 return this.dataSources;
             return this.dataSources.filter((data) => !this.itemHidden(data));
         }
+        get indexMap() {
+            if (!this.dataKey)
+                return {};
+            return this.dataSources.reduce((result, dataSource, index) => {
+                return {
+                    ...result,
+                    // @ts-ignore
+                    [dataSource[this.dataKey]]: index
+                };
+            }, {});
+        }
         get fullAttributes() {
+            const { dataSources, ...rest } = this.$props;
             return {
                 ...this.$attrs,
-                ...this.$props,
-                dataSources: this.filteredDatasources,
+                ...rest,
+                dataSources: this.filteredDataSources,
+                orgDataSources: dataSources,
+                indexMap: this.indexMap
             };
         }
     };
@@ -9393,7 +9463,7 @@ var __vue_staticRenderFns__ = [];
   /* scoped */
   const __vue_scope_id__ = undefined;
   /* module identifier */
-  const __vue_module_identifier__ = "data-v-39985f3b";
+  const __vue_module_identifier__ = "data-v-5b91a0ec";
   /* functional template */
   const __vue_is_functional_template__ = false;
   /* style inject */

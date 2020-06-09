@@ -5,9 +5,12 @@ export default class DraggableVirtualList<T> extends VirtualScrollListProps<T> {
     value: Array<T>;
     Draggable: import("vuedraggable").DraggableConstructor;
     DraggablePolicy: typeof DraggablePolicy;
-    get filteredDatasources(): T[];
+    get filteredDataSources(): T[];
+    get indexMap(): {};
     get fullAttributes(): {
         dataSources: T[];
+        orgDataSources: any;
+        indexMap: {};
     };
     inheritListeners: {};
 }

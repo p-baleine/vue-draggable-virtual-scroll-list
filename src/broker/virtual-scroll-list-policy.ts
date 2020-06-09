@@ -58,18 +58,10 @@ export default class VirtualScrollListPolicy<
     this._draggingIndex = e.oldIndex
     const relativeIndex = range.start + e.oldIndex
     this._draggingRealIndex = relativeIndex
-    this._dataKey && this._indexMap
-      ? this._calcRealIndex(relativeIndex)
-      : relativeIndex
     this._draggingVNode = slots[e.oldIndex]
   }
 
   public onDragEnd() {
     this._draggingVNode = null
-  }
-
-  private _calcRealIndex(relativeIndex: number): number {
-    if (this._dataSources.length <= relativeIndex) return relativeIndex
-    return this._indexMap[this._dataSources[relativeIndex][this._dataKey]]
   }
 }
