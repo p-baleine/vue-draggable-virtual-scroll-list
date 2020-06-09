@@ -1,19 +1,10 @@
 {
   "compilerOptions": {
-    "declaration": true,
-    "declarationMap": true,
-    "declarationDir": "dist",
-    "outDir": "./dist/",
     "noImplicitAny": true,
-    "sourceMap": true,
     "target": "esnext",
     "module": "esnext",
     "moduleResolution": "node",
     "baseUrl": "./",
-    "paths": {
-      "~" : ["./src"],
-      "~/*" : ["./src/*"]
-    },
     "allowSyntheticDefaultImports": true,
     "lib": [
       "es2019",
@@ -24,10 +15,4 @@
     "experimentalDecorators": true,
     "esModuleInterop": true
   },
-  "include": ["./src", "./types"],
-  "exclude": [
-    "node_modules",
-    "rollup",
-    "dist"
-  ]
 }

@@ -1,6 +1,8 @@
-import { CreateElement, VueConstructor, VNode } from 'vue';
+import { CreateElement, VueConstructor } from 'vue';
 import { Vue } from 'vue-property-decorator';
-import { Instruction } from './draggable-policy';
+import VirtualScrollListProps from "../mixins/VirtualScrollListProps";
+import VirtualList from 'vue-virtual-scroll-list';
+import DraggablePolicyCtor, { Instruction } from "./draggable-policy";
 export interface IDraggable<T> extends VueConstructor {
     props: {
         value: Array<T>;
@@ -8,13 +10,6 @@ export interface IDraggable<T> extends VueConstructor {
     };
     $emit(event: 'change', e: DraggableEvent<T>): void;
     $emit(event: keyof SortableEvents, e: Event): void;
-}
-export interface IVirtualList extends VueConstructor {
-    options: {
-        methods: {
-            getRenderSlots(h: CreateElement): Array<VNode>;
-        };
-    };
 }
 export declare enum SortableEvents {
     start = 0,
@@ -30,5 +25,22 @@ export declare enum SortableEvents {
 }
 declare type DraggableEvent<T> = Instruction<T> & Event;
 export declare function sortableEventHandlers(context: Vue): {};
-export default function createBroker(VirtualList: IVirtualList): IVirtualList;
+declare const Broker_base: import("vue-class-component/lib/declarations").VueClass<VirtualList & VirtualScrollListProps<unknown>>;
+export default class Broker<T> extends Broker_base {
+    Draggable: IDraggable<T>;
+    DraggablePolicy: typeof DraggablePolicyCtor;
+    onDataSourcesChanged(this: any, newValue: T[], oldValue: T[]): void;
+    onChangeIndexMap(this: any, _newValue: object, _oldValue: object): void;
+    onChangeDataKey(this: any, _newValue: string | number, _oldValue: string): void;
+    indexMap: {
+        [id: string]: number;
+    };
+    orgDataSources: T[];
+    private range;
+    private isHorizontal;
+    private vlsPolicy;
+    _getRenderSlots(h: CreateElement): any[];
+    getRenderSlots(h: CreateElement): ReturnType<CreateElement>[];
+}
 export {};
+//# sourceMappingURL=index.d.ts.map

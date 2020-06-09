@@ -25,14 +25,24 @@ const baseConfig = {
   input: 'src/index.ts',
   plugins: {
     preVue: [
-      typescript(),
-      babel(),
       alias({
         resolve: ['.js', '.jsx', '.ts', '.tsx', '.vue'],
         entries: {
-          '@': path.resolve(projectRoot, 'src'),
+          '~': path.resolve(projectRoot, 'src'),
         },
       }),
+      typescript({
+        typescript: require('ttypescript'),
+        tsconfigDefaults: {
+          compilerOptions: {
+            plugins: [
+              { "transform": "typescript-transform-paths" },
+              { "transform": "typescript-transform-paths", "afterDeclarations": true }
+            ]
+          }
+        }
+      }),
+      babel(),
     ],
     replace: {
       'process.env.NODE_ENV': JSON.stringify('production'),

@@ -6877,6 +6877,664 @@ function (modules) {
 
 var Draggable = unwrapExports(vuedraggable_common);
 
+/**
+  * vue-class-component v7.2.3
+  * (c) 2015-present Evan You
+  * @license MIT
+  */
+
+function _typeof$1(obj) {
+  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+    _typeof$1 = function (obj) {
+      return typeof obj;
+    };
+  } else {
+    _typeof$1 = function (obj) {
+      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    };
+  }
+
+  return _typeof$1(obj);
+}
+
+function _defineProperty$1(obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+
+  return obj;
+}
+
+function _toConsumableArray(arr) {
+  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
+}
+
+function _arrayWithoutHoles(arr) {
+  if (Array.isArray(arr)) {
+    for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+    return arr2;
+  }
+}
+
+function _iterableToArray(iter) {
+  if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
+}
+
+function _nonIterableSpread() {
+  throw new TypeError("Invalid attempt to spread non-iterable instance");
+} // The rational behind the verbose Reflect-feature check below is the fact that there are polyfills
+// which add an implementation for Reflect.defineMetadata but not for Reflect.getOwnMetadataKeys.
+// Without this check consumers will encounter hard to track down runtime errors.
+
+
+function reflectionIsSupported() {
+  return typeof Reflect !== 'undefined' && Reflect.defineMetadata && Reflect.getOwnMetadataKeys;
+}
+
+function copyReflectionMetadata(to, from) {
+  forwardMetadata(to, from);
+  Object.getOwnPropertyNames(from.prototype).forEach(function (key) {
+    forwardMetadata(to.prototype, from.prototype, key);
+  });
+  Object.getOwnPropertyNames(from).forEach(function (key) {
+    forwardMetadata(to, from, key);
+  });
+}
+
+function forwardMetadata(to, from, propertyKey) {
+  var metaKeys = propertyKey ? Reflect.getOwnMetadataKeys(from, propertyKey) : Reflect.getOwnMetadataKeys(from);
+  metaKeys.forEach(function (metaKey) {
+    var metadata = propertyKey ? Reflect.getOwnMetadata(metaKey, from, propertyKey) : Reflect.getOwnMetadata(metaKey, from);
+
+    if (propertyKey) {
+      Reflect.defineMetadata(metaKey, metadata, to, propertyKey);
+    } else {
+      Reflect.defineMetadata(metaKey, metadata, to);
+    }
+  });
+}
+
+var fakeArray = {
+  __proto__: []
+};
+var hasProto = fakeArray instanceof Array;
+
+function createDecorator(factory) {
+  return function (target, key, index) {
+    var Ctor = typeof target === 'function' ? target : target.constructor;
+
+    if (!Ctor.__decorators__) {
+      Ctor.__decorators__ = [];
+    }
+
+    if (typeof index !== 'number') {
+      index = undefined;
+    }
+
+    Ctor.__decorators__.push(function (options) {
+      return factory(options, key, index);
+    });
+  };
+}
+
+function mixins() {
+  for (var _len = arguments.length, Ctors = new Array(_len), _key = 0; _key < _len; _key++) {
+    Ctors[_key] = arguments[_key];
+  }
+
+  return Vue.extend({
+    mixins: Ctors
+  });
+}
+
+function isPrimitive(value) {
+  var type = _typeof$1(value);
+
+  return value == null || type !== 'object' && type !== 'function';
+}
+
+function collectDataFromConstructor(vm, Component) {
+  // override _init to prevent to init as Vue instance
+  var originalInit = Component.prototype._init;
+
+  Component.prototype._init = function () {
+    var _this = this; // proxy to actual vm
+
+
+    var keys = Object.getOwnPropertyNames(vm); // 2.2.0 compat (props are no longer exposed as self properties)
+
+    if (vm.$options.props) {
+      for (var key in vm.$options.props) {
+        if (!vm.hasOwnProperty(key)) {
+          keys.push(key);
+        }
+      }
+    }
+
+    keys.forEach(function (key) {
+      if (key.charAt(0) !== '_') {
+        Object.defineProperty(_this, key, {
+          get: function get() {
+            return vm[key];
+          },
+          set: function set(value) {
+            vm[key] = value;
+          },
+          configurable: true
+        });
+      }
+    });
+  }; // should be acquired class property values
+
+
+  var data = new Component(); // restore original _init to avoid memory leak (#209)
+
+  Component.prototype._init = originalInit; // create plain data object
+
+  var plainData = {};
+  Object.keys(data).forEach(function (key) {
+    if (data[key] !== undefined) {
+      plainData[key] = data[key];
+    }
+  });
+
+  return plainData;
+}
+
+var $internalHooks = ['data', 'beforeCreate', 'created', 'beforeMount', 'mounted', 'beforeDestroy', 'destroyed', 'beforeUpdate', 'updated', 'activated', 'deactivated', 'render', 'errorCaptured', 'serverPrefetch' // 2.6
+];
+
+function componentFactory(Component) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  options.name = options.name || Component._componentTag || Component.name; // prototype props.
+
+  var proto = Component.prototype;
+  Object.getOwnPropertyNames(proto).forEach(function (key) {
+    if (key === 'constructor') {
+      return;
+    } // hooks
+
+
+    if ($internalHooks.indexOf(key) > -1) {
+      options[key] = proto[key];
+      return;
+    }
+
+    var descriptor = Object.getOwnPropertyDescriptor(proto, key);
+
+    if (descriptor.value !== void 0) {
+      // methods
+      if (typeof descriptor.value === 'function') {
+        (options.methods || (options.methods = {}))[key] = descriptor.value;
+      } else {
+        // typescript decorated data
+        (options.mixins || (options.mixins = [])).push({
+          data: function data() {
+            return _defineProperty$1({}, key, descriptor.value);
+          }
+        });
+      }
+    } else if (descriptor.get || descriptor.set) {
+      // computed properties
+      (options.computed || (options.computed = {}))[key] = {
+        get: descriptor.get,
+        set: descriptor.set
+      };
+    }
+  });
+  (options.mixins || (options.mixins = [])).push({
+    data: function data() {
+      return collectDataFromConstructor(this, Component);
+    }
+  }); // decorate options
+
+  var decorators = Component.__decorators__;
+
+  if (decorators) {
+    decorators.forEach(function (fn) {
+      return fn(options);
+    });
+    delete Component.__decorators__;
+  } // find super
+
+
+  var superProto = Object.getPrototypeOf(Component.prototype);
+  var Super = superProto instanceof Vue ? superProto.constructor : Vue;
+  var Extended = Super.extend(options);
+  forwardStaticMembers(Extended, Component, Super);
+
+  if (reflectionIsSupported()) {
+    copyReflectionMetadata(Extended, Component);
+  }
+
+  return Extended;
+}
+var shouldIgnore = {
+  prototype: true,
+  arguments: true,
+  callee: true,
+  caller: true
+};
+
+function forwardStaticMembers(Extended, Original, Super) {
+  // We have to use getOwnPropertyNames since Babel registers methods as non-enumerable
+  Object.getOwnPropertyNames(Original).forEach(function (key) {
+    // Skip the properties that should not be overwritten
+    if (shouldIgnore[key]) {
+      return;
+    } // Some browsers does not allow reconfigure built-in properties
+
+
+    var extendedDescriptor = Object.getOwnPropertyDescriptor(Extended, key);
+
+    if (extendedDescriptor && !extendedDescriptor.configurable) {
+      return;
+    }
+
+    var descriptor = Object.getOwnPropertyDescriptor(Original, key); // If the user agent does not support `__proto__` or its family (IE <= 10),
+    // the sub class properties may be inherited properties from the super class in TypeScript.
+    // We need to exclude such properties to prevent to overwrite
+    // the component options object which stored on the extended constructor (See #192).
+    // If the value is a referenced value (object or function),
+    // we can check equality of them and exclude it if they have the same reference.
+    // If it is a primitive value, it will be forwarded for safety.
+
+    if (!hasProto) {
+      // Only `cid` is explicitly exluded from property forwarding
+      // because we cannot detect whether it is a inherited property or not
+      // on the no `__proto__` environment even though the property is reserved.
+      if (key === 'cid') {
+        return;
+      }
+
+      var superDescriptor = Object.getOwnPropertyDescriptor(Super, key);
+
+      if (!isPrimitive(descriptor.value) && superDescriptor && superDescriptor.value === descriptor.value) {
+        return;
+      }
+    } // Warn if the users manually declare reserved properties
+
+    Object.defineProperty(Extended, key, descriptor);
+  });
+}
+
+function Component(options) {
+  if (typeof options === 'function') {
+    return componentFactory(options);
+  }
+
+  return function (Component) {
+    return componentFactory(Component, options);
+  };
+}
+
+Component.registerHooks = function registerHooks(keys) {
+  $internalHooks.push.apply($internalHooks, _toConsumableArray(keys));
+};
+
+/** vue-property-decorator verson 8.4.1 MIT LICENSE copyright 2019 kaorun343 */
+/** Used for keying reactive provide/inject properties */
+
+var reactiveInjectKey = '__reactiveInject__';
+/**
+ * decorator of an inject
+ * @param from key
+ * @return PropertyDecorator
+ */
+
+function Inject(options) {
+  return createDecorator(function (componentOptions, key) {
+    if (typeof componentOptions.inject === 'undefined') {
+      componentOptions.inject = {};
+    }
+
+    if (!Array.isArray(componentOptions.inject)) {
+      componentOptions.inject[key] = options || key;
+    }
+  });
+}
+
+function produceProvide(original) {
+  var provide = function () {
+    var _this = this;
+
+    var rv = typeof original === 'function' ? original.call(this) : original;
+    rv = Object.create(rv || null); // set reactive services (propagates previous services if necessary)
+
+    rv[reactiveInjectKey] = this[reactiveInjectKey] || {};
+
+    for (var i in provide.managed) {
+      rv[provide.managed[i]] = this[i];
+    }
+
+    var _loop_1 = function (i) {
+      rv[provide.managedReactive[i]] = this_1[i]; // Duplicates the behavior of `@Provide`
+
+      if (!rv[reactiveInjectKey].hasOwnProperty(provide.managedReactive[i])) {
+        Object.defineProperty(rv[reactiveInjectKey], provide.managedReactive[i], {
+          enumerable: true,
+          get: function () {
+            return _this[i];
+          }
+        });
+      }
+    };
+
+    var this_1 = this;
+
+    for (var i in provide.managedReactive) {
+      _loop_1(i);
+    }
+
+    return rv;
+  };
+
+  provide.managed = {};
+  provide.managedReactive = {};
+  return provide;
+}
+
+function needToProduceProvide(original) {
+  return typeof original !== 'function' || !original.managed && !original.managedReactive;
+}
+/**
+ * decorator of a provide
+ * @param key key
+ * @return PropertyDecorator | void
+ */
+
+
+function Provide(key) {
+  return createDecorator(function (componentOptions, k) {
+    var provide = componentOptions.provide;
+
+    if (needToProduceProvide(provide)) {
+      provide = componentOptions.provide = produceProvide(provide);
+    }
+
+    provide.managed[k] = key || k;
+  });
+}
+/** @see {@link https://github.com/vuejs/vue-class-component/blob/master/src/reflect.ts} */
+
+var reflectMetadataIsSupported = typeof Reflect !== 'undefined' && typeof Reflect.getMetadata !== 'undefined';
+
+function applyMetadata(options, target, key) {
+  if (reflectMetadataIsSupported) {
+    if (!Array.isArray(options) && typeof options !== 'function' && typeof options.type === 'undefined') {
+      var type = Reflect.getMetadata('design:type', target, key);
+
+      if (type !== Object) {
+        options.type = type;
+      }
+    }
+  }
+}
+/**
+ * decorator of a prop
+ * @param  options the options for the prop
+ * @return PropertyDecorator | void
+ */
+
+function Prop(options) {
+  if (options === void 0) {
+    options = {};
+  }
+
+  return function (target, key) {
+    applyMetadata(options, target, key);
+    createDecorator(function (componentOptions, k) {
+      (componentOptions.props || (componentOptions.props = {}))[k] = options;
+    })(target, key);
+  };
+}
+/**
+ * decorator of a watch function
+ * @param  path the path or the expression to observe
+ * @param  WatchOption
+ * @return MethodDecorator
+ */
+
+function Watch(path, options) {
+  if (options === void 0) {
+    options = {};
+  }
+
+  var _a = options.deep,
+      deep = _a === void 0 ? false : _a,
+      _b = options.immediate,
+      immediate = _b === void 0 ? false : _b;
+  return createDecorator(function (componentOptions, handler) {
+    if (typeof componentOptions.watch !== 'object') {
+      componentOptions.watch = Object.create(null);
+    }
+
+    var watch = componentOptions.watch;
+
+    if (typeof watch[path] === 'object' && !Array.isArray(watch[path])) {
+      watch[path] = [watch[path]];
+    } else if (typeof watch[path] === 'undefined') {
+      watch[path] = [];
+    }
+
+    watch[path].push({
+      handler: handler,
+      deep: deep,
+      immediate: immediate
+    });
+  });
+} // Code copied from Vue/src/shared/util.js
+
+let VirtualScrollListProps = /** @class */ (() => {
+    let VirtualScrollListProps = class VirtualScrollListProps extends Vue {
+    };
+    __decorate([
+        Prop()
+    ], VirtualScrollListProps.prototype, "size", void 0);
+    __decorate([
+        Prop()
+    ], VirtualScrollListProps.prototype, "keeps", void 0);
+    __decorate([
+        Prop()
+    ], VirtualScrollListProps.prototype, "dataKey", void 0);
+    __decorate([
+        Prop()
+    ], VirtualScrollListProps.prototype, "dataSources", void 0);
+    __decorate([
+        Prop()
+    ], VirtualScrollListProps.prototype, "dataComponent", void 0);
+    __decorate([
+        Prop({ default: '' })
+    ], VirtualScrollListProps.prototype, "itemClass", void 0);
+    __decorate([
+        Prop()
+    ], VirtualScrollListProps.prototype, "disabled", void 0);
+    __decorate([
+        Prop()
+    ], VirtualScrollListProps.prototype, "itemHidden", void 0);
+    __decorate([
+        Prop({ default: 'div' })
+    ], VirtualScrollListProps.prototype, "itemTag", void 0);
+    __decorate([
+        Prop()
+    ], VirtualScrollListProps.prototype, "extraProps", void 0);
+    __decorate([
+        Prop()
+    ], VirtualScrollListProps.prototype, "disableComputeMargin", void 0);
+    VirtualScrollListProps = __decorate([
+        Component
+    ], VirtualScrollListProps);
+    return VirtualScrollListProps;
+})();
+
+/**
+ * props declaration for default, item and slot component.
+ */
+const ItemProps = {
+    event: {
+        type: String,
+    },
+    tag: {
+        type: String,
+    },
+    horizontal: {
+        type: Boolean,
+    },
+    source: {
+        type: Object,
+    },
+    component: {
+        type: [Object, Function],
+    },
+    uniqueKey: {
+        type: String,
+    },
+    extraProps: {
+        type: Object,
+    },
+};
+const SlotProps = {
+    event: {
+        type: String,
+    },
+    uniqueKey: {
+        type: String,
+    },
+    tag: {
+        type: String,
+    },
+    horizontal: {
+        type: Boolean,
+    },
+};
+
+//@ts-nocheck
+const Wrapper = {
+    created() {
+        this.hasInitial = false;
+        this.shapeKey = this.horizontal ? 'offsetWidth' : 'offsetHeight';
+    },
+    mounted() {
+        // dispatch once at initial.
+        this.dispatchSizeChange();
+        if (typeof ResizeObserver !== 'undefined') {
+            this.resizeObserver = new ResizeObserver(() => {
+                // dispatch when size changed.
+                if (this.hasInitial) {
+                    this.dispatchSizeChange();
+                }
+                else {
+                    this.hasInitial = true;
+                }
+            });
+            this.resizeObserver.observe(this.$el);
+        }
+    },
+    beforeDestroy() {
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
+        }
+    },
+    methods: {
+        getCurrentSize() {
+            return this.$el ? this.$el[this.shapeKey] : 0;
+        },
+        // tell parent current size identify by unqiue key.
+        dispatchSizeChange() {
+            this.$parent.$emit(this.event, this.uniqueKey, this.getCurrentSize(), this.hasInitial);
+        },
+    },
+};
+// wrapping for item.
+const Item = Vue.component('virtual-list-item', {
+    mixins: [Wrapper],
+    props: ItemProps,
+    render(h) {
+        return h(this.tag, {
+            role: 'item',
+        }, [
+            h(this.component, {
+                props: {
+                    ...this.extraProps,
+                    source: this.source,
+                },
+            }),
+        ]);
+    },
+});
+// wrapping for slot.
+const Slot = Vue.component('virtual-list-slot', {
+    mixins: [Wrapper],
+    props: SlotProps,
+    render(h) {
+        return h(this.tag, {
+            attrs: {
+                role: this.uniqueKey,
+            },
+        }, this.$slots.default);
+    },
+});
+
+class VirtualScrollListPolicy {
+    constructor() {
+        this._draggingVNode = null;
+        this._indexMap = null;
+    }
+    get draggingVNode() {
+        return this._draggingVNode;
+    }
+    get draggingIndex() {
+        return this._draggingIndex;
+    }
+    get draggingRealIndex() {
+        return this._draggingRealIndex;
+    }
+    get indexMap() {
+        return this._indexMap;
+    }
+    set indexMap(value) {
+        this._indexMap = value;
+    }
+    get dataKey() {
+        return this._dataKey;
+    }
+    set dataKey(value) {
+        this._dataKey = value;
+    }
+    get dataSources() {
+        return this._dataSources;
+    }
+    set dataSources(value) {
+        this._dataSources = value;
+    }
+    onDragStart(e, range, slots) {
+        this._draggingIndex = e.oldIndex;
+        const relativeIndex = range.start + e.oldIndex;
+        this._draggingRealIndex = relativeIndex;
+        this._dataKey && this._indexMap
+            ? this._calcRealIndex(relativeIndex)
+            : relativeIndex;
+        this._draggingVNode = slots[e.oldIndex];
+    }
+    onDragEnd() {
+        this._draggingVNode = null;
+    }
+    _calcRealIndex(relativeIndex) {
+        if (this._dataSources.length <= relativeIndex)
+            return relativeIndex;
+        return this._indexMap[this._dataSources[relativeIndex][this._dataKey]];
+    }
+}
+
 var dist = createCommonjsModule(function (module, exports) {
 /*!
  * vue-virtual-scroll-list v2.0.2
@@ -7680,561 +8338,6 @@ var dist = createCommonjsModule(function (module, exports) {
 });
 });
 
-/**
-  * vue-class-component v7.2.3
-  * (c) 2015-present Evan You
-  * @license MIT
-  */
-
-function _typeof$1(obj) {
-  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-    _typeof$1 = function (obj) {
-      return typeof obj;
-    };
-  } else {
-    _typeof$1 = function (obj) {
-      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    };
-  }
-
-  return _typeof$1(obj);
-}
-
-function _defineProperty$1(obj, key, value) {
-  if (key in obj) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
-  }
-
-  return obj;
-}
-
-function _toConsumableArray(arr) {
-  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
-}
-
-function _arrayWithoutHoles(arr) {
-  if (Array.isArray(arr)) {
-    for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
-
-    return arr2;
-  }
-}
-
-function _iterableToArray(iter) {
-  if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
-}
-
-function _nonIterableSpread() {
-  throw new TypeError("Invalid attempt to spread non-iterable instance");
-} // The rational behind the verbose Reflect-feature check below is the fact that there are polyfills
-// which add an implementation for Reflect.defineMetadata but not for Reflect.getOwnMetadataKeys.
-// Without this check consumers will encounter hard to track down runtime errors.
-
-
-function reflectionIsSupported() {
-  return typeof Reflect !== 'undefined' && Reflect.defineMetadata && Reflect.getOwnMetadataKeys;
-}
-
-function copyReflectionMetadata(to, from) {
-  forwardMetadata(to, from);
-  Object.getOwnPropertyNames(from.prototype).forEach(function (key) {
-    forwardMetadata(to.prototype, from.prototype, key);
-  });
-  Object.getOwnPropertyNames(from).forEach(function (key) {
-    forwardMetadata(to, from, key);
-  });
-}
-
-function forwardMetadata(to, from, propertyKey) {
-  var metaKeys = propertyKey ? Reflect.getOwnMetadataKeys(from, propertyKey) : Reflect.getOwnMetadataKeys(from);
-  metaKeys.forEach(function (metaKey) {
-    var metadata = propertyKey ? Reflect.getOwnMetadata(metaKey, from, propertyKey) : Reflect.getOwnMetadata(metaKey, from);
-
-    if (propertyKey) {
-      Reflect.defineMetadata(metaKey, metadata, to, propertyKey);
-    } else {
-      Reflect.defineMetadata(metaKey, metadata, to);
-    }
-  });
-}
-
-var fakeArray = {
-  __proto__: []
-};
-var hasProto = fakeArray instanceof Array;
-
-function createDecorator(factory) {
-  return function (target, key, index) {
-    var Ctor = typeof target === 'function' ? target : target.constructor;
-
-    if (!Ctor.__decorators__) {
-      Ctor.__decorators__ = [];
-    }
-
-    if (typeof index !== 'number') {
-      index = undefined;
-    }
-
-    Ctor.__decorators__.push(function (options) {
-      return factory(options, key, index);
-    });
-  };
-}
-
-function isPrimitive(value) {
-  var type = _typeof$1(value);
-
-  return value == null || type !== 'object' && type !== 'function';
-}
-
-function collectDataFromConstructor(vm, Component) {
-  // override _init to prevent to init as Vue instance
-  var originalInit = Component.prototype._init;
-
-  Component.prototype._init = function () {
-    var _this = this; // proxy to actual vm
-
-
-    var keys = Object.getOwnPropertyNames(vm); // 2.2.0 compat (props are no longer exposed as self properties)
-
-    if (vm.$options.props) {
-      for (var key in vm.$options.props) {
-        if (!vm.hasOwnProperty(key)) {
-          keys.push(key);
-        }
-      }
-    }
-
-    keys.forEach(function (key) {
-      if (key.charAt(0) !== '_') {
-        Object.defineProperty(_this, key, {
-          get: function get() {
-            return vm[key];
-          },
-          set: function set(value) {
-            vm[key] = value;
-          },
-          configurable: true
-        });
-      }
-    });
-  }; // should be acquired class property values
-
-
-  var data = new Component(); // restore original _init to avoid memory leak (#209)
-
-  Component.prototype._init = originalInit; // create plain data object
-
-  var plainData = {};
-  Object.keys(data).forEach(function (key) {
-    if (data[key] !== undefined) {
-      plainData[key] = data[key];
-    }
-  });
-
-  return plainData;
-}
-
-var $internalHooks = ['data', 'beforeCreate', 'created', 'beforeMount', 'mounted', 'beforeDestroy', 'destroyed', 'beforeUpdate', 'updated', 'activated', 'deactivated', 'render', 'errorCaptured', 'serverPrefetch' // 2.6
-];
-
-function componentFactory(Component) {
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-  options.name = options.name || Component._componentTag || Component.name; // prototype props.
-
-  var proto = Component.prototype;
-  Object.getOwnPropertyNames(proto).forEach(function (key) {
-    if (key === 'constructor') {
-      return;
-    } // hooks
-
-
-    if ($internalHooks.indexOf(key) > -1) {
-      options[key] = proto[key];
-      return;
-    }
-
-    var descriptor = Object.getOwnPropertyDescriptor(proto, key);
-
-    if (descriptor.value !== void 0) {
-      // methods
-      if (typeof descriptor.value === 'function') {
-        (options.methods || (options.methods = {}))[key] = descriptor.value;
-      } else {
-        // typescript decorated data
-        (options.mixins || (options.mixins = [])).push({
-          data: function data() {
-            return _defineProperty$1({}, key, descriptor.value);
-          }
-        });
-      }
-    } else if (descriptor.get || descriptor.set) {
-      // computed properties
-      (options.computed || (options.computed = {}))[key] = {
-        get: descriptor.get,
-        set: descriptor.set
-      };
-    }
-  });
-  (options.mixins || (options.mixins = [])).push({
-    data: function data() {
-      return collectDataFromConstructor(this, Component);
-    }
-  }); // decorate options
-
-  var decorators = Component.__decorators__;
-
-  if (decorators) {
-    decorators.forEach(function (fn) {
-      return fn(options);
-    });
-    delete Component.__decorators__;
-  } // find super
-
-
-  var superProto = Object.getPrototypeOf(Component.prototype);
-  var Super = superProto instanceof Vue ? superProto.constructor : Vue;
-  var Extended = Super.extend(options);
-  forwardStaticMembers(Extended, Component, Super);
-
-  if (reflectionIsSupported()) {
-    copyReflectionMetadata(Extended, Component);
-  }
-
-  return Extended;
-}
-var shouldIgnore = {
-  prototype: true,
-  arguments: true,
-  callee: true,
-  caller: true
-};
-
-function forwardStaticMembers(Extended, Original, Super) {
-  // We have to use getOwnPropertyNames since Babel registers methods as non-enumerable
-  Object.getOwnPropertyNames(Original).forEach(function (key) {
-    // Skip the properties that should not be overwritten
-    if (shouldIgnore[key]) {
-      return;
-    } // Some browsers does not allow reconfigure built-in properties
-
-
-    var extendedDescriptor = Object.getOwnPropertyDescriptor(Extended, key);
-
-    if (extendedDescriptor && !extendedDescriptor.configurable) {
-      return;
-    }
-
-    var descriptor = Object.getOwnPropertyDescriptor(Original, key); // If the user agent does not support `__proto__` or its family (IE <= 10),
-    // the sub class properties may be inherited properties from the super class in TypeScript.
-    // We need to exclude such properties to prevent to overwrite
-    // the component options object which stored on the extended constructor (See #192).
-    // If the value is a referenced value (object or function),
-    // we can check equality of them and exclude it if they have the same reference.
-    // If it is a primitive value, it will be forwarded for safety.
-
-    if (!hasProto) {
-      // Only `cid` is explicitly exluded from property forwarding
-      // because we cannot detect whether it is a inherited property or not
-      // on the no `__proto__` environment even though the property is reserved.
-      if (key === 'cid') {
-        return;
-      }
-
-      var superDescriptor = Object.getOwnPropertyDescriptor(Super, key);
-
-      if (!isPrimitive(descriptor.value) && superDescriptor && superDescriptor.value === descriptor.value) {
-        return;
-      }
-    } // Warn if the users manually declare reserved properties
-
-    Object.defineProperty(Extended, key, descriptor);
-  });
-}
-
-function Component(options) {
-  if (typeof options === 'function') {
-    return componentFactory(options);
-  }
-
-  return function (Component) {
-    return componentFactory(Component, options);
-  };
-}
-
-Component.registerHooks = function registerHooks(keys) {
-  $internalHooks.push.apply($internalHooks, _toConsumableArray(keys));
-};
-
-/** vue-property-decorator verson 8.4.1 MIT LICENSE copyright 2019 kaorun343 */
-/** Used for keying reactive provide/inject properties */
-
-var reactiveInjectKey = '__reactiveInject__';
-/**
- * decorator of an inject
- * @param from key
- * @return PropertyDecorator
- */
-
-function Inject(options) {
-  return createDecorator(function (componentOptions, key) {
-    if (typeof componentOptions.inject === 'undefined') {
-      componentOptions.inject = {};
-    }
-
-    if (!Array.isArray(componentOptions.inject)) {
-      componentOptions.inject[key] = options || key;
-    }
-  });
-}
-
-function produceProvide(original) {
-  var provide = function () {
-    var _this = this;
-
-    var rv = typeof original === 'function' ? original.call(this) : original;
-    rv = Object.create(rv || null); // set reactive services (propagates previous services if necessary)
-
-    rv[reactiveInjectKey] = this[reactiveInjectKey] || {};
-
-    for (var i in provide.managed) {
-      rv[provide.managed[i]] = this[i];
-    }
-
-    var _loop_1 = function (i) {
-      rv[provide.managedReactive[i]] = this_1[i]; // Duplicates the behavior of `@Provide`
-
-      if (!rv[reactiveInjectKey].hasOwnProperty(provide.managedReactive[i])) {
-        Object.defineProperty(rv[reactiveInjectKey], provide.managedReactive[i], {
-          enumerable: true,
-          get: function () {
-            return _this[i];
-          }
-        });
-      }
-    };
-
-    var this_1 = this;
-
-    for (var i in provide.managedReactive) {
-      _loop_1(i);
-    }
-
-    return rv;
-  };
-
-  provide.managed = {};
-  provide.managedReactive = {};
-  return provide;
-}
-
-function needToProduceProvide(original) {
-  return typeof original !== 'function' || !original.managed && !original.managedReactive;
-}
-/**
- * decorator of a provide
- * @param key key
- * @return PropertyDecorator | void
- */
-
-
-function Provide(key) {
-  return createDecorator(function (componentOptions, k) {
-    var provide = componentOptions.provide;
-
-    if (needToProduceProvide(provide)) {
-      provide = componentOptions.provide = produceProvide(provide);
-    }
-
-    provide.managed[k] = key || k;
-  });
-}
-/** @see {@link https://github.com/vuejs/vue-class-component/blob/master/src/reflect.ts} */
-
-var reflectMetadataIsSupported = typeof Reflect !== 'undefined' && typeof Reflect.getMetadata !== 'undefined';
-
-function applyMetadata(options, target, key) {
-  if (reflectMetadataIsSupported) {
-    if (!Array.isArray(options) && typeof options !== 'function' && typeof options.type === 'undefined') {
-      var type = Reflect.getMetadata('design:type', target, key);
-
-      if (type !== Object) {
-        options.type = type;
-      }
-    }
-  }
-}
-/**
- * decorator of a prop
- * @param  options the options for the prop
- * @return PropertyDecorator | void
- */
-
-function Prop(options) {
-  if (options === void 0) {
-    options = {};
-  }
-
-  return function (target, key) {
-    applyMetadata(options, target, key);
-    createDecorator(function (componentOptions, k) {
-      (componentOptions.props || (componentOptions.props = {}))[k] = options;
-    })(target, key);
-  };
-}
-/**
- * decorator of a watch function
- * @param  path the path or the expression to observe
- * @param  WatchOption
- * @return MethodDecorator
- */
-
-function Watch(path, options) {
-  if (options === void 0) {
-    options = {};
-  }
-
-  var _a = options.deep,
-      deep = _a === void 0 ? false : _a,
-      _b = options.immediate,
-      immediate = _b === void 0 ? false : _b;
-  return createDecorator(function (componentOptions, handler) {
-    if (typeof componentOptions.watch !== 'object') {
-      componentOptions.watch = Object.create(null);
-    }
-
-    var watch = componentOptions.watch;
-
-    if (typeof watch[path] === 'object' && !Array.isArray(watch[path])) {
-      watch[path] = [watch[path]];
-    } else if (typeof watch[path] === 'undefined') {
-      watch[path] = [];
-    }
-
-    watch[path].push({
-      handler: handler,
-      deep: deep,
-      immediate: immediate
-    });
-  });
-} // Code copied from Vue/src/shared/util.js
-
-/**
- * props declaration for default, item and slot component.
- */
-const ItemProps = {
-    event: {
-        type: String,
-    },
-    tag: {
-        type: String,
-    },
-    horizontal: {
-        type: Boolean,
-    },
-    source: {
-        type: Object,
-    },
-    component: {
-        type: [Object, Function],
-    },
-    uniqueKey: {
-        type: String,
-    },
-    extraProps: {
-        type: Object,
-    },
-};
-const SlotProps = {
-    event: {
-        type: String,
-    },
-    uniqueKey: {
-        type: String,
-    },
-    tag: {
-        type: String,
-    },
-    horizontal: {
-        type: Boolean,
-    },
-};
-
-//@ts-nocheck
-const Wrapper = {
-    created() {
-        this.hasInitial = false;
-        this.shapeKey = this.horizontal ? 'offsetWidth' : 'offsetHeight';
-    },
-    mounted() {
-        // dispatch once at initial.
-        this.dispatchSizeChange();
-        if (typeof ResizeObserver !== 'undefined') {
-            this.resizeObserver = new ResizeObserver(() => {
-                // dispatch when size changed.
-                if (this.hasInitial) {
-                    this.dispatchSizeChange();
-                }
-                else {
-                    this.hasInitial = true;
-                }
-            });
-            this.resizeObserver.observe(this.$el);
-        }
-    },
-    beforeDestroy() {
-        if (this.resizeObserver) {
-            this.resizeObserver.disconnect();
-            this.resizeObserver = null;
-        }
-    },
-    methods: {
-        getCurrentSize() {
-            return this.$el ? this.$el[this.shapeKey] : 0;
-        },
-        // tell parent current size identify by unqiue key.
-        dispatchSizeChange() {
-            this.$parent.$emit(this.event, this.uniqueKey, this.getCurrentSize(), this.hasInitial);
-        },
-    },
-};
-// wrapping for item.
-const Item = Vue.component('virtual-list-item', {
-    mixins: [Wrapper],
-    props: ItemProps,
-    render(h) {
-        return h(this.tag, {
-            role: 'item',
-        }, [
-            h(this.component, {
-                props: {
-                    ...this.extraProps,
-                    source: this.source,
-                },
-            }),
-        ]);
-    },
-});
-// wrapping for slot.
-const Slot = Vue.component('virtual-list-slot', {
-    mixins: [Wrapper],
-    props: SlotProps,
-    render(h) {
-        return h(this.tag, {
-            attrs: {
-                role: this.uniqueKey,
-            },
-        }, this.$slots.default);
-    },
-});
-
 var Level;
 (function (Level) {
     Level[Level["DEBUG"] = 10] = "DEBUG";
@@ -8293,10 +8396,12 @@ var logger = new Logger({
 const instructionNames = ['moved', 'added', 'removed'];
 // This class is responsible for ensuring Draggable policies.
 class DraggablePolicy {
-    constructor(dataKey, dataSources, visibleRange) {
+    constructor(dataKey, dataSources, visibleRange, orgDataSources, indexMap) {
         this.dataKey = dataKey;
         this.dataSources = dataSources;
         this.visibleRange = visibleRange;
+        this.orgDataSources = orgDataSources;
+        this.indexMap = indexMap;
     }
     // Find the real item from item.
     findRealItem(item) {
@@ -8306,15 +8411,19 @@ class DraggablePolicy {
     // Returns a new list which is created based on
     // the update `instruction`.
     updatedSources(instruction, draggingRealIndex) {
-        const newList = [...this.dataSources];
+        const newList = [...this.orgDataSources];
         if ('moved' in instruction) {
             const { newIndex } = instruction.moved;
             const start = this.visibleRange.start + newIndex;
             const deleteCount = 0;
-            const item = newList.splice(draggingRealIndex, 1)[0];
+            const indexForRemove = draggingRealIndex;
+            const indexForInsert = this._calcRealIndex(start);
+            const item = newList.splice(this._calcRealIndex(indexForRemove), 1)[0];
             logger.debug(`Move by splicing start: ${start},` +
                 ` deleteCount: ${deleteCount}, item:`, item);
-            newList.splice(start, deleteCount, item);
+            logger.debug(`real index removed: ${indexForRemove},` +
+                ` real index inserted: ${indexForInsert}, item:`, item);
+            newList.splice(indexForInsert, deleteCount, item);
         }
         else if ('added' in instruction) {
             const { newIndex, element } = instruction.added;
@@ -8323,39 +8432,27 @@ class DraggablePolicy {
             const item = element;
             logger.debug(`Add by splicing start: ${start},` +
                 ` deleteCount: ${deleteCount}, item:`, item);
-            newList.splice(start, deleteCount, item);
+            newList.splice(this._calcRealInsertIndex(start), deleteCount, item);
         }
         else if ('removed' in instruction) {
             const { oldIndex } = instruction.removed;
             const start = this.visibleRange.start + oldIndex;
             const deleteCount = 1;
             logger.debug(`Remove by splicing start: ${start},` + ` deleteCount: ${deleteCount}`);
-            newList.splice(start, deleteCount);
+            newList.splice(this._calcRealIndex(start), deleteCount);
         }
         return newList;
     }
-}
-
-class VirtualScrollListPolicy {
-    constructor() {
-        this._draggingVNode = null;
+    _calcRealIndex(relativeIndex) {
+        if (this.dataSources.length <= relativeIndex)
+            return relativeIndex;
+        return this.indexMap[this.dataSources[relativeIndex][this.dataKey]];
     }
-    get draggingVNode() {
-        return this._draggingVNode;
-    }
-    get draggingIndex() {
-        return this._draggingIndex;
-    }
-    get draggingRealIndex() {
-        return this._draggingRealIndex;
-    }
-    onDragStart(e, range, slots) {
-        this._draggingIndex = e.oldIndex;
-        this._draggingRealIndex = range.start + e.oldIndex;
-        this._draggingVNode = slots[e.oldIndex];
-    }
-    onDragEnd() {
-        this._draggingVNode = null;
+    _calcRealInsertIndex(relativeIndex) {
+        if (0 >= relativeIndex)
+            return relativeIndex;
+        return (this.indexMap[this.dataSources[relativeIndex - 1][this.dataKey]] +
+            1);
     }
 }
 
@@ -8383,27 +8480,27 @@ const EVENT_TYPE = {
     ITEM: 'item_resize',
     SLOT: 'slot_resize',
 };
-const SLOT_TYPE = {
-    HEADER: 'header',
-    FOOTER: 'footer',
-};
 // A fuctory function which will return DraggableVirtualList constructor.
-function createBroker(VirtualList) {
-    let Broker = class Broker extends VirtualList {
+let Broker = /** @class */ (() => {
+    let Broker = class Broker extends mixins(dist, VirtualScrollListProps) {
         constructor() {
+            // Properties of vue-virtual-scroll-list
+            // See: https://github.com/tangbc/vue-virtual-scroll-list#props-type
             super(...arguments);
             this.vlsPolicy = new VirtualScrollListPolicy();
         }
         onDataSourcesChanged(newValue, oldValue) {
-            if (newValue.length !== oldValue.length) {
+            if (oldValue && newValue.length !== oldValue.length) {
                 this.virtual.updateParam('uniqueIds', this.getUniqueIdFromDataSources());
                 this.virtual.handleDataSourcesChange();
             }
+            this.vlsPolicy.dataSources = newValue;
         }
-        _dataAdaptCondition(dataSource) {
-            if (!this.itemHidden)
-                return true;
-            return !this.itemHidden(dataSource);
+        onChangeIndexMap(_newValue, _oldValue) {
+            this.vlsPolicy.indexMap = _newValue;
+        }
+        onChangeDataKey(_newValue, _oldValue) {
+            this.vlsPolicy.dataKey = _newValue;
         }
         _getRenderSlots(h) {
             const slots = [];
@@ -8418,8 +8515,7 @@ function createBroker(VirtualList) {
                 activeSlotCount < sliceCount) {
                 const dataSource = this.dataSources[index];
                 if (dataSource) {
-                    if (this._dataAdaptCondition(dataSource))
-                        activeSlotCount++;
+                    activeSlotCount++;
                     slots.push(h(Item, {
                         class: typeof this.itemClass === 'function'
                             ? this.itemClass(dataSource)
@@ -8442,7 +8538,7 @@ function createBroker(VirtualList) {
         getRenderSlots(h) {
             const { Draggable, DraggablePolicy } = this;
             const slots = this._getRenderSlots(h);
-            const draggablePolicy = new DraggablePolicy(this.dataKey, this.dataSources, this.range);
+            const draggablePolicy = new DraggablePolicy(this.dataKey, this.dataSources, this.range, this.orgDataSources, this.indexMap);
             if (this.vlsPolicy.draggingVNode) {
                 // ドラッグ中の要素を vls に差し込む
                 slots.splice(this.vlsPolicy.draggingIndex, 1, this.vlsPolicy.draggingVNode);
@@ -8476,92 +8572,7 @@ function createBroker(VirtualList) {
                 }, slots),
             ];
         }
-        _calcPadding() {
-            if (this.disabled)
-                return 0;
-            if (this.isHorizontal)
-                return `0px ${this.range.padBehind}px 0px ${this.range.padFront}px`;
-            if (this.disableComputeMargin)
-                return 0;
-            return `${this.range.padFront}px 0px ${this.range.padBehind}px`;
-        }
-        render(h) {
-            const { header, footer } = this.$slots;
-            const padding = this._calcPadding();
-            return h(this.rootTag, {
-                ref: 'root',
-                on: {
-                    '&scroll': this.onScroll,
-                },
-            }, [
-                // header slot.
-                header
-                    ? h(Slot, {
-                        class: this.headerClass,
-                        props: {
-                            tag: this.headerTag,
-                            event: EVENT_TYPE.SLOT,
-                            uniqueKey: SLOT_TYPE.HEADER,
-                        },
-                    }, header)
-                    : null,
-                // main list.
-                h(this.wrapTag, {
-                    class: this.wrapClass,
-                    attrs: {
-                        role: 'group',
-                    },
-                    style: {
-                        padding: padding,
-                    },
-                }, this.getRenderSlots(h)),
-                // footer slot.
-                footer
-                    ? h(Slot, {
-                        class: this.footerClass,
-                        props: {
-                            tag: this.footerTag,
-                            event: EVENT_TYPE.SLOT,
-                            uniqueKey: SLOT_TYPE.FOOTER,
-                        },
-                    }, footer)
-                    : null,
-            ]);
-        }
     };
-    __decorate([
-        Prop()
-    ], Broker.prototype, "size", void 0);
-    __decorate([
-        Prop()
-    ], Broker.prototype, "keeps", void 0);
-    __decorate([
-        Prop()
-    ], Broker.prototype, "dataKey", void 0);
-    __decorate([
-        Prop()
-    ], Broker.prototype, "dataSources", void 0);
-    __decorate([
-        Prop()
-    ], Broker.prototype, "dataComponent", void 0);
-    __decorate([
-        Prop({ default: '' })
-    ], Broker.prototype, "itemClass", void 0);
-    __decorate([
-        Prop()
-    ], Broker.prototype, "disabled", void 0);
-    __decorate([
-        Prop()
-    ], Broker.prototype, "itemHidden", void 0);
-    __decorate([
-        Prop({ default: 'div' })
-    ], Broker.prototype, "itemTag", void 0);
-    __decorate([
-        Prop()
-    ], Broker.prototype, "extraProps", void 0);
-    __decorate([
-        Prop()
-    ], Broker.prototype, "disableComputeMargin", void 0);
     __decorate([
         Inject()
     ], Broker.prototype, "Draggable", void 0);
@@ -8569,81 +8580,202 @@ function createBroker(VirtualList) {
         Inject()
     ], Broker.prototype, "DraggablePolicy", void 0);
     __decorate([
-        Watch('dataSources')
+        Watch('dataSources', { immediate: true })
     ], Broker.prototype, "onDataSourcesChanged", null);
+    __decorate([
+        Watch('indexMap', { immediate: true })
+    ], Broker.prototype, "onChangeIndexMap", null);
+    __decorate([
+        Watch('dataKey', { immediate: true })
+    ], Broker.prototype, "onChangeDataKey", null);
+    __decorate([
+        Prop()
+    ], Broker.prototype, "indexMap", void 0);
+    __decorate([
+        Prop()
+    ], Broker.prototype, "orgDataSources", void 0);
     Broker = __decorate([
         Component
     ], Broker);
     return Broker;
-}
+})();
 // Returns handlers which propagate sortable's events.
 
-const Broker = createBroker(dist);
 // SortableJS/Vue.Draggable + tangbc/vue-virtual-scroll-list.
-let DraggableVirtualList = class DraggableVirtualList extends Vue {
-    constructor() {
-        super(...arguments);
-        this.Draggable = Draggable;
-        this.DraggablePolicy = DraggablePolicy;
-    }
-    render(h) {
-        return h(Broker, {
-            props: this.$props,
-            attrs: this.$attrs,
-            on: {
-                // Propagate VirtualList's input event.
-                input: this.$emit.bind(this, 'input'),
-                // Propagate draggable.sortable's events.
-                ...sortableEventHandlers(this),
-            },
-        });
-    }
-};
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "value", void 0);
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "size", void 0);
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "keeps", void 0);
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "dataKey", void 0);
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "dataSources", void 0);
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "dataComponent", void 0);
-__decorate([
-    Prop({ default: '' })
-], DraggableVirtualList.prototype, "itemClass", void 0);
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "disabled", void 0);
-__decorate([
-    Provide()
-], DraggableVirtualList.prototype, "Draggable", void 0);
-__decorate([
-    Provide()
-], DraggableVirtualList.prototype, "DraggablePolicy", void 0);
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "itemHidden", void 0);
-__decorate([
-    Prop({ default: 'div' })
-], DraggableVirtualList.prototype, "itemTag", void 0);
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "extraProps", void 0);
-__decorate([
-    Prop()
-], DraggableVirtualList.prototype, "disableComputeMargin", void 0);
-DraggableVirtualList = __decorate([
-    Component
-], DraggableVirtualList);
-var DraggableVirtualList$1 = DraggableVirtualList;
+let DraggableVirtualList = /** @class */ (() => {
+    let DraggableVirtualList = class DraggableVirtualList extends VirtualScrollListProps {
+        constructor() {
+            super(...arguments);
+            this.Draggable = Draggable;
+            this.DraggablePolicy = DraggablePolicy;
+            this.inheritListeners = {
+                ...this.$listeners,
+                ...sortableEventHandlers
+            };
+        }
+        get filteredDataSources() {
+            if (!this.itemHidden)
+                return this.dataSources;
+            return this.dataSources.filter((data) => !this.itemHidden(data));
+        }
+        get indexMap() {
+            if (!this.dataKey)
+                return {};
+            return this.dataSources.reduce((result, dataSource, index) => {
+                return {
+                    ...result,
+                    // @ts-ignore
+                    [dataSource[this.dataKey]]: index
+                };
+            }, {});
+        }
+        get fullAttributes() {
+            const { dataSources, ...rest } = this.$props;
+            return {
+                ...this.$attrs,
+                ...rest,
+                dataSources: this.filteredDataSources,
+                orgDataSources: dataSources,
+                indexMap: this.indexMap
+            };
+        }
+    };
+    __decorate([
+        Prop()
+    ], DraggableVirtualList.prototype, "value", void 0);
+    __decorate([
+        Provide()
+    ], DraggableVirtualList.prototype, "Draggable", void 0);
+    __decorate([
+        Provide()
+    ], DraggableVirtualList.prototype, "DraggablePolicy", void 0);
+    DraggableVirtualList = __decorate([
+        Component({
+            components: {
+                Broker: Broker
+            }
+        })
+    ], DraggableVirtualList);
+    return DraggableVirtualList;
+})();
 
-export default DraggableVirtualList$1;
+function normalizeComponent(template, style, script, scopeId, isFunctionalTemplate, moduleIdentifier
+/* server only */
+, shadowMode, createInjector, createInjectorSSR, createInjectorShadow) {
+  if (typeof shadowMode !== 'boolean') {
+    createInjectorSSR = createInjector;
+    createInjector = shadowMode;
+    shadowMode = false;
+  } // Vue.extend constructor export interop.
+
+
+  const options = typeof script === 'function' ? script.options : script; // render functions
+
+  if (template && template.render) {
+    options.render = template.render;
+    options.staticRenderFns = template.staticRenderFns;
+    options._compiled = true; // functional template
+
+    if (isFunctionalTemplate) {
+      options.functional = true;
+    }
+  } // scopedId
+
+
+  if (scopeId) {
+    options._scopeId = scopeId;
+  }
+
+  let hook;
+
+  if (moduleIdentifier) {
+    // server build
+    hook = function (context) {
+      // 2.3 injection
+      context = context || // cached call
+      this.$vnode && this.$vnode.ssrContext || // stateful
+      this.parent && this.parent.$vnode && this.parent.$vnode.ssrContext; // functional
+      // 2.2 with runInNewContext: true
+
+      if (!context && typeof __VUE_SSR_CONTEXT__ !== 'undefined') {
+        context = __VUE_SSR_CONTEXT__;
+      } // inject component styles
+
+
+      if (style) {
+        style.call(this, createInjectorSSR(context));
+      } // register component module identifier for async chunk inference
+
+
+      if (context && context._registeredComponents) {
+        context._registeredComponents.add(moduleIdentifier);
+      }
+    }; // used by ssr in case component is cached and beforeCreate
+    // never gets called
+
+
+    options._ssrRegister = hook;
+  } else if (style) {
+    hook = shadowMode ? function (context) {
+      style.call(this, createInjectorShadow(context, this.$root.$options.shadowRoot));
+    } : function (context) {
+      style.call(this, createInjector(context));
+    };
+  }
+
+  if (hook) {
+    if (options.functional) {
+      // register for functional component in vue file
+      const originalRender = options.render;
+
+      options.render = function renderWithStyleInjection(h, context) {
+        hook.call(context);
+        return originalRender(h, context);
+      };
+    } else {
+      // inject component registration as beforeCreate hook
+      const existing = options.beforeCreate;
+      options.beforeCreate = existing ? [].concat(existing, hook) : [hook];
+    }
+  }
+
+  return script;
+}
+
+/* script */
+const __vue_script__ = DraggableVirtualList;
+
+/* template */
+var __vue_render__ = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('Broker',_vm._g(_vm._b({on:{"input":function($event){return _vm.$emit('input')}}},'Broker',_vm.fullAttributes,false),_vm.inheritListeners))};
+var __vue_staticRenderFns__ = [];
+
+  /* style */
+  const __vue_inject_styles__ = undefined;
+  /* scoped */
+  const __vue_scope_id__ = undefined;
+  /* module identifier */
+  const __vue_module_identifier__ = undefined;
+  /* functional template */
+  const __vue_is_functional_template__ = false;
+  /* style inject */
+  
+  /* style inject SSR */
+  
+  /* style inject shadow dom */
+  
+
+  
+  const __vue_component__ = /*#__PURE__*/normalizeComponent(
+    { render: __vue_render__, staticRenderFns: __vue_staticRenderFns__ },
+    __vue_inject_styles__,
+    __vue_script__,
+    __vue_scope_id__,
+    __vue_is_functional_template__,
+    __vue_module_identifier__,
+    false,
+    undefined,
+    undefined,
+    undefined
+  );
+
+export default __vue_component__;

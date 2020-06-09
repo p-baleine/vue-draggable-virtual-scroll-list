@@ -122,3 +122,4 @@ export declare const SlotProps: {
         type: BooleanConstructor;
     };
 };
+//# sourceMappingURL=props.d.ts.map
