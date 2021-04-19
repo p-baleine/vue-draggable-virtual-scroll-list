@@ -1,6 +1,10 @@
+import { MoveEvent } from 'sortablejs';
 import { VNode } from 'vue';
-export interface DragStartEvent extends Event {
+export interface CustomDragEvent extends MoveEvent {
     oldIndex: number;
+    newIndex: number;
+    realOldIndex: number;
+    realNewIndex: number;
 }
 export interface VirtualRange {
     start: number;
@@ -12,6 +16,6 @@ export default class VirtualScrollListPolicy {
     get draggingVNode(): VNode;
     get draggingIndex(): number;
     get draggingRealIndex(): number;
-    onDragStart(e: DragStartEvent, range: VirtualRange, slots: Array<VNode>): void;
+    onDragStart(e: CustomDragEvent, range: VirtualRange, slots: Array<VNode>): void;
     onDragEnd(): void;
 }

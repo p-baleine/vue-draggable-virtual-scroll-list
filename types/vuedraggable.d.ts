@@ -11,6 +11,5 @@ declare module 'vuedraggable' {
     $emit(event: string, e: Event): void;
   }
 
-  export default draggable;
   export const draggable: DraggableConstructor;
 }

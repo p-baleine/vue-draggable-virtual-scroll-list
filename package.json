@@ -1,6 +1,6 @@
 {
   "name": "vue-draggable-virtual-scroll-list",
-  "version": "0.0.5",
+  "version": "0.0.9",
   "description": "SortableJS/Vue.Draggable + tangbc/vue-virtual-scroll-list",
   "main": "dist/bundle.js",
   "scripts": {
@@ -11,10 +11,11 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@types/sortablejs": "^1.10.6",
     "vue": "^2.6.11",
     "vue-property-decorator": "^8.4.1",
-    "vue-virtual-scroll-list": "^2.0.3",
-    "vuedraggable": "^2.23.2"
+    "vue-virtual-scroll-list": "^2.3.2",
+    "vuedraggable": "^2.24.3"
   },
   "devDependencies": {
     "@babel/core": "^7.9.0",
@@ -39,8 +40,14 @@
   "peerDependencies": {
     "vue": "^2.6.11"
   },
+  "typings": "types/index.d.ts",
   "files": [
     "dist",
-    "src"
-  ]
+    "src",
+    "types"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/p-baleine/vue-draggable-virtual-scroll-list.git"
+  }
 }

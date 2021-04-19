@@ -23,7 +23,7 @@ export default class DraggablePolicy<T> {
     private dataKey: keyof T,
     private dataSources: Array<T>,
     private visibleRange: { start: number },
-  ) {}
+  ) { }
 
   // Find the real item from item.
   public findRealItem(item: T) {
@@ -45,7 +45,7 @@ export default class DraggablePolicy<T> {
       const deleteCount = 0;
       const item = newList.splice(draggingRealIndex, 1)[0];
       logger.debug(`Move by splicing start: ${start},`
-                   + ` deleteCount: ${deleteCount}, item:`, item);
+        + ` deleteCount: ${deleteCount}, item:`, item);
       newList.splice(start, deleteCount, item);
     } else if ('added' in instruction) {
       const { newIndex, element } = instruction.added;
@@ -53,14 +53,14 @@ export default class DraggablePolicy<T> {
       const deleteCount = 0;
       const item = element;
       logger.debug(`Add by splicing start: ${start},`
-                   + ` deleteCount: ${deleteCount}, item:`, item);
+        + ` deleteCount: ${deleteCount}, item:`, item);
       newList.splice(start, deleteCount, item);
     } else if ('removed' in instruction) {
       const { oldIndex } = instruction.removed;
       const start = this.visibleRange.start + oldIndex;
       const deleteCount = 1;
       logger.debug(`Remove by splicing start: ${start},`
-                   + ` deleteCount: ${deleteCount}`);
+        + ` deleteCount: ${deleteCount}`);
       newList.splice(start, deleteCount);
     }
 

@@ -31,7 +31,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 import Draggable from 'vuedraggable';
 import VirtualList from 'vue-virtual-scroll-list';
 import { Vue, Component, Prop, Provide } from 'vue-property-decorator';
-import createBroker from './broker';
+import createBroker, { virtualScrollEventHandlers } from './broker';
 import DraggablePolicy from './broker/draggable-policy';
 import { sortableEventHandlers } from './broker';
 var Broker = createBroker(VirtualList);
@@ -46,12 +46,26 @@ var DraggableVirtualList = /** @class */ (function (_super) {
     }
     DraggableVirtualList.prototype.render = function (h) {
         return h(Broker, {
+            ref: "broker",
             props: this.$props,
             attrs: this.$attrs,
-            on: __assign({ 
-                // Propagate VirtualList's input event.
-                input: this.$emit.bind(this, 'input') }, sortableEventHandlers(this)),
+            on: __assign(__assign({ 
+                // Propagate virtual-list's input event.
+                input: this.$emit.bind(this, 'input') }, virtualScrollEventHandlers(this)), sortableEventHandlers(this)),
         });
+    };
+    // Propagate virtual-list function from https://github.com/tangbc/vue-virtual-scroll-list
+    DraggableVirtualList.prototype.scrollToBottom = function () {
+        var _a;
+        (_a = this.$refs.broker) === null || _a === void 0 ? void 0 : _a.scrollToBottom();
+    };
+    DraggableVirtualList.prototype.scrollToIndex = function (index) {
+        var _a;
+        (_a = this.$refs.broker) === null || _a === void 0 ? void 0 : _a.scrollToIndex(index);
+    };
+    DraggableVirtualList.prototype.scrollToOffset = function (offset) {
+        var _a;
+        (_a = this.$refs.broker) === null || _a === void 0 ? void 0 : _a.scrollToOffset(offset);
     };
     __decorate([
         Prop()
