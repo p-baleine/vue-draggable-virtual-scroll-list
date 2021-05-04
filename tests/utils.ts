@@ -2,7 +2,7 @@ export const Item = {
   props: {
     source: {
       type: Object,
-      default () {
+      default() {
         return {}
       },
     },

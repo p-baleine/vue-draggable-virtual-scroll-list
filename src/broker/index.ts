@@ -2,157 +2,157 @@ import { CreateElement, VueConstructor, VNode } from 'vue';
 import { Vue, Component, Inject, Prop } from 'vue-property-decorator';
 
 import DraggablePolicyCtor, {
-    Instruction,
-    instructionNames as draggableEvents
+  Instruction,
+  instructionNames as draggableEvents
 } from './draggable-policy';
 import VirtualScrollListPolicy, {
-    CustomDragEvent,
+  CustomDragEvent,
 } from './virtual-scroll-list-policy';
 
 export interface IDraggable<T> extends VueConstructor {
-    props: {
-        // Properties of vuedraggable
-        // See: https://github.com/SortableJS/Vue.Draggable#props
-        value: Array<T>;
-        clone: (x: T) => T;
-    };
+  props: {
+    // Properties of vuedraggable
+    // See: https://github.com/SortableJS/Vue.Draggable#props
+    value: Array<T>;
+    clone: (x: T) => T;
+  };
 
-    $emit(event: 'change', e: DraggableEvent<T>): void;
-    $emit(event: keyof SortableEvents, e: Event): void;
+  $emit(event: 'change', e: DraggableEvent<T>): void;
+  $emit(event: keyof SortableEvents, e: Event): void;
 }
 
 export interface IVirtualList extends VueConstructor {
-    options: {
-        methods: {
-            getRenderSlots(h: CreateElement): Array<VNode>,
-        }
-    };
+  options: {
+    methods: {
+      getRenderSlots(h: CreateElement): Array<VNode>,
+    }
+  };
 }
 
 export enum SortableEvents {
-    start, add, remove, update, end,
-    choose, unchoose, sort, filter, clone,
+  start, add, remove, update, end,
+  choose, unchoose, sort, filter, clone,
 }
 
 export enum VirtualScrollEvents {
-    scroll, totop, tobottom, resized
+  scroll, totop, tobottom, resized
 }
 
 
 type DraggableEvent<T> = Instruction<T> & Event;
 
 const sortableEvents = Object.values(SortableEvents)
-    .filter(x => typeof x === 'string');
+  .filter(x => typeof x === 'string');
 
 const virtualScrollEvents = Object.values(VirtualScrollEvents)
-    .filter(x => typeof x === 'string');
+  .filter(x => typeof x === 'string');
 
 // A factory function which will return DraggableVirtualList constructor.
 export default function createBroker(VirtualList: IVirtualList): IVirtualList {
-    @Component
-    class Broker<T> extends VirtualList {
-        // Properties of vue-virtual-scroll-list
-        // See: https://github.com/tangbc/vue-virtual-scroll-list#props-type
-        @Prop() estimateSize?: number;
-        @Prop() extraProps?: object;
-        @Prop() keeps!: number;
-        @Prop() dataKey!: keyof T;
-        @Prop() dataSources!: Array<T>;
-        @Prop() dataComponent!: Vue;
+  @Component
+  class Broker<T> extends VirtualList {
+    // Properties of vue-virtual-scroll-list
+    // See: https://github.com/tangbc/vue-virtual-scroll-list#props-type
+    @Prop() estimateSize?: number;
+    @Prop() extraProps?: object;
+    @Prop() keeps!: number;
+    @Prop() dataKey!: keyof T;
+    @Prop() dataSources!: Array<T>;
+    @Prop() dataComponent!: Vue;
 
-        @Inject() Draggable!: IDraggable<T>;
-        @Inject() DraggablePolicy!: typeof DraggablePolicyCtor;
+    @Inject() Draggable!: IDraggable<T>;
+    @Inject() DraggablePolicy!: typeof DraggablePolicyCtor;
 
-        private range: { start: number };
-        private vlsPolicy = new VirtualScrollListPolicy();
+    private range: { start: number };
+    private vlsPolicy = new VirtualScrollListPolicy();
 
-        // Override
-        //
-        // Return the result of VirtualList.options.methods.getRenderSlots
-        // which would be wrapped by Draggable.
-        // Draggable's change events would be converted to input
-        // events and emitted.
-        getRenderSlots(h: CreateElement) {
-            const { Draggable, DraggablePolicy } = this;
-            const slots: VNode[] = VirtualList.options.methods.getRenderSlots.call(this, h);
+    // Override
+    //
+    // Return the result of VirtualList.options.methods.getRenderSlots
+    // which would be wrapped by Draggable.
+    // Draggable's change events would be converted to input
+    // events and emitted.
+    getRenderSlots(h: CreateElement) {
+      const { Draggable, DraggablePolicy } = this;
+      const slots: VNode[] = VirtualList.options.methods.getRenderSlots.call(this, h);
 
-            // Add index on the slots
-            slots.forEach((slot: VNode, index) => {
-                slot.data.attrs = {
-                    'data-index': index + this.range.start
-                }
-            })
-            const draggablePolicy = new DraggablePolicy(
-                this.dataKey, this.dataSources, this.range);
+      // Add index on the slots
+      slots.forEach((slot: VNode, index) => {
+        slot.data.attrs = {
+          'data-index': index + this.range.start
+        }
+      })
+      const draggablePolicy = new DraggablePolicy(
+        this.dataKey, this.dataSources, this.range);
 
-            if (this.vlsPolicy.draggingVNode) {
-                // ドラッグ中の要素を vls に差し込む
-                slots.splice(
-                    this.vlsPolicy.draggingIndex, 1, this.vlsPolicy.draggingVNode);
+      if (this.vlsPolicy.draggingVNode) {
+        // ドラッグ中の要素を vls に差し込む
+        slots.splice(
+          this.vlsPolicy.draggingIndex, 1, this.vlsPolicy.draggingVNode);
+      }
+
+      return [
+        h(Draggable, {
+          props: {
+            value: this.dataSources,
+
+            // policy will find the real item from x.
+            clone: (x: T) => draggablePolicy.findRealItem(x),
+          },
+          on: {
+            // Convert Draggable's change events to input events.
+            change: (e: DraggableEvent<T>) => {
+              if (draggableEvents.some(n => n in e)) {
+                this.$emit('input', draggablePolicy.updatedSources(
+                  e, this.vlsPolicy.draggingRealIndex));
+              }
+            },
+
+            // Propagate Sortable events.
+            ...sortableEventHandlers(this),
+
+            start: (e: CustomDragEvent) => {
+              this.vlsPolicy.onDragStart(e, this.range, slots);
+              this.$emit('start', this.buildEventWithRealIndex(e));
+            },
+
+            end: (e: CustomDragEvent) => {
+              this.vlsPolicy.onDragEnd();
+              this.$emit('end', this.buildEventWithRealIndex(e));
             }
-
-            return [
-                h(Draggable, {
-                    props: {
-                        value: this.dataSources,
-
-                        // policy will find the real item from x.
-                        clone: (x: T) => draggablePolicy.findRealItem(x),
-                    },
-                    on: {
-                        // Convert Draggable's change events to input events.
-                        change: (e: DraggableEvent<T>) => {
-                            if (draggableEvents.some(n => n in e)) {
-                                this.$emit('input', draggablePolicy.updatedSources(
-                                    e, this.vlsPolicy.draggingRealIndex));
-                            }
-                        },
-
-                        // Propagate Sortable events.
-                        ...sortableEventHandlers(this),
-
-                        start: (e: CustomDragEvent) => {
-                            this.vlsPolicy.onDragStart(e, this.range, slots);
-                            this.$emit('start', this.buildEventWithRealIndex(e));
-                        },
-
-                        end: (e: CustomDragEvent) => {
-                            this.vlsPolicy.onDragEnd();
-                            this.$emit('end', this.buildEventWithRealIndex(e));
-                        }
-                    },
-                    attrs: this.$attrs,
-                }, slots),
-            ];
-        }
-
-        buildEventWithRealIndex(e: CustomDragEvent) {
-            const fromFirstChild = e.from?.firstElementChild as HTMLElement;
-            const toFirstChild = e.to?.firstElementChild as HTMLElement;
-            const fromFirstIndex = parseInt(fromFirstChild?.dataset?.index ?? '0');
-            const toFirstIndex = parseInt(toFirstChild?.dataset?.index ?? '0');
-            e.realNewIndex = toFirstIndex + e.newIndex
-            e.realOldIndex = fromFirstIndex + e.oldIndex
-            return e
-        }
+          },
+          attrs: this.$attrs,
+        }, slots),
+      ];
     }
 
-    return Broker;
+    buildEventWithRealIndex(e: CustomDragEvent) {
+      const fromFirstChild = e.from?.firstElementChild as HTMLElement;
+      const toFirstChild = e.to?.firstElementChild as HTMLElement;
+      const fromFirstIndex = parseInt(fromFirstChild?.dataset?.index ?? '0');
+      const toFirstIndex = parseInt(toFirstChild?.dataset?.index ?? '0');
+      e.realNewIndex = toFirstIndex + e.newIndex
+      e.realOldIndex = fromFirstIndex + e.oldIndex
+      return e
+    }
+  }
+
+  return Broker;
 }
 
 // Returns handlers which propagate virtual-list's events.
 export function virtualScrollEventHandlers(context: Vue) {
-    return virtualScrollEvents.reduce((acc, eventName) => ({
-        ...acc,
-        [eventName]: context.$emit.bind(context, eventName),
-    }), {});
+  return virtualScrollEvents.reduce((acc, eventName) => ({
+    ...acc,
+    [eventName]: context.$emit.bind(context, eventName),
+  }), {});
 }
 
 
 // Returns handlers which propagate sortable's events.
 export function sortableEventHandlers(context: Vue) {
-    return sortableEvents.reduce((acc, eventName) => ({
-        ...acc,
-        [eventName]: context.$emit.bind(context, eventName),
-    }), {});
+  return sortableEvents.reduce((acc, eventName) => ({
+    ...acc,
+    [eventName]: context.$emit.bind(context, eventName),
+  }), {});
 }
