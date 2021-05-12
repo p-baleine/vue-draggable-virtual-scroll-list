@@ -62,6 +62,8 @@ export default function createBroker(VirtualList) {
         function Broker() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
             _this.vlsPolicy = new VirtualScrollListPolicy();
+            _this.onStartFromFirstChildIndex = 0;
+            _this.onStartToFirstChildIndex = 0;
             return _this;
         }
         // Override
@@ -100,24 +102,27 @@ export default function createBroker(VirtualList) {
                             }
                         } }, sortableEventHandlers(this)), { start: function (e) {
                             _this.vlsPolicy.onDragStart(e, _this.range, slots);
-                            _this.$emit('start', _this.buildEventWithRealIndex(e));
+                            _this.$emit('start', _this.handleOnStartRealIndex(e));
                         }, end: function (e) {
                             _this.vlsPolicy.onDragEnd();
-                            _this.$emit('end', _this.buildEventWithRealIndex(e));
+                            _this.$emit('end', _this.handleOnEndRealIndex(e));
                         } }),
                     attrs: this.$attrs,
                 }, slots),
             ];
         };
-        Broker.prototype.buildEventWithRealIndex = function (e) {
+        Broker.prototype.handleOnStartRealIndex = function (event) {
             var _a, _b, _c, _d, _e, _f;
-            var fromFirstChild = (_a = e.from) === null || _a === void 0 ? void 0 : _a.firstElementChild;
-            var toFirstChild = (_b = e.to) === null || _b === void 0 ? void 0 : _b.firstElementChild;
-            var fromFirstIndex = parseInt((_d = (_c = fromFirstChild === null || fromFirstChild === void 0 ? void 0 : fromFirstChild.dataset) === null || _c === void 0 ? void 0 : _c.index) !== null && _d !== void 0 ? _d : '0');
-            var toFirstIndex = parseInt((_f = (_e = toFirstChild === null || toFirstChild === void 0 ? void 0 : toFirstChild.dataset) === null || _e === void 0 ? void 0 : _e.index) !== null && _f !== void 0 ? _f : '0');
-            e.realNewIndex = toFirstIndex + e.newIndex;
-            e.realOldIndex = fromFirstIndex + e.oldIndex;
-            return e;
+            var fromFirstChild = (_a = event.from) === null || _a === void 0 ? void 0 : _a.firstElementChild;
+            var toFirstChild = (_b = event.to) === null || _b === void 0 ? void 0 : _b.firstElementChild;
+            this.onStartFromFirstChildIndex = parseInt((_d = (_c = fromFirstChild === null || fromFirstChild === void 0 ? void 0 : fromFirstChild.dataset) === null || _c === void 0 ? void 0 : _c.index) !== null && _d !== void 0 ? _d : '0');
+            this.onStartToFirstChildIndex = parseInt((_f = (_e = toFirstChild === null || toFirstChild === void 0 ? void 0 : toFirstChild.dataset) === null || _e === void 0 ? void 0 : _e.index) !== null && _f !== void 0 ? _f : '0');
+            return event;
+        };
+        Broker.prototype.handleOnEndRealIndex = function (event) {
+            event.realNewIndex = this.onStartToFirstChildIndex + event.newIndex;
+            event.realOldIndex = this.onStartFromFirstChildIndex + event.oldIndex;
+            return event;
         };
         __decorate([
             Prop()

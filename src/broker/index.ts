@@ -65,6 +65,8 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
 
     private range: { start: number };
     private vlsPolicy = new VirtualScrollListPolicy();
+    private onStartFromFirstChildIndex = 0;
+    private onStartToFirstChildIndex = 0;
 
     // Override
     //
@@ -113,12 +115,12 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
 
             start: (e: CustomDragEvent) => {
               this.vlsPolicy.onDragStart(e, this.range, slots);
-              this.$emit('start', this.buildEventWithRealIndex(e));
+              this.$emit('start', this.handleOnStartRealIndex(e));
             },
 
             end: (e: CustomDragEvent) => {
               this.vlsPolicy.onDragEnd();
-              this.$emit('end', this.buildEventWithRealIndex(e));
+              this.$emit('end', this.handleOnEndRealIndex(e));
             }
           },
           attrs: this.$attrs,
@@ -126,14 +128,18 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
       ];
     }
 
-    buildEventWithRealIndex(e: CustomDragEvent) {
-      const fromFirstChild = e.from?.firstElementChild as HTMLElement;
-      const toFirstChild = e.to?.firstElementChild as HTMLElement;
-      const fromFirstIndex = parseInt(fromFirstChild?.dataset?.index ?? '0');
-      const toFirstIndex = parseInt(toFirstChild?.dataset?.index ?? '0');
-      e.realNewIndex = toFirstIndex + e.newIndex
-      e.realOldIndex = fromFirstIndex + e.oldIndex
-      return e
+    handleOnStartRealIndex(event: CustomDragEvent) {
+      const fromFirstChild = event.from?.firstElementChild as HTMLElement;
+      const toFirstChild = event.to?.firstElementChild as HTMLElement;
+      this.onStartFromFirstChildIndex = parseInt(fromFirstChild?.dataset?.index ?? '0');
+      this.onStartToFirstChildIndex = parseInt(toFirstChild?.dataset?.index ?? '0');
+      return event
+    }
+
+    handleOnEndRealIndex(event: CustomDragEvent) {
+      event.realNewIndex = this.onStartToFirstChildIndex + event.newIndex
+      event.realOldIndex = this.onStartFromFirstChildIndex + event.oldIndex
+      return event
     }
   }
 
