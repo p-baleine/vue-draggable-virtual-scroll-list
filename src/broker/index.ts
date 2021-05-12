@@ -65,8 +65,7 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
 
     private range: { start: number };
     private vlsPolicy = new VirtualScrollListPolicy();
-    private onStartFromFirstChildIndex = 0;
-    private onStartToFirstChildIndex = 0;
+    private fromFirstChildIndex = 0;
 
     // Override
     //
@@ -130,15 +129,15 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
 
     handleOnStartRealIndex(event: CustomDragEvent) {
       const fromFirstChild = event.from?.firstElementChild as HTMLElement;
-      const toFirstChild = event.to?.firstElementChild as HTMLElement;
-      this.onStartFromFirstChildIndex = parseInt(fromFirstChild?.dataset?.index ?? '0');
-      this.onStartToFirstChildIndex = parseInt(toFirstChild?.dataset?.index ?? '0');
+      this.fromFirstChildIndex = parseInt(fromFirstChild?.dataset?.index ?? '0');
       return event
     }
 
     handleOnEndRealIndex(event: CustomDragEvent) {
-      event.realNewIndex = this.onStartToFirstChildIndex + event.newIndex
-      event.realOldIndex = this.onStartFromFirstChildIndex + event.oldIndex
+      const toFirstChild = event.to?.firstElementChild as HTMLElement;
+      const toFirstIndex = parseInt(toFirstChild?.dataset?.index ?? '0');
+      event.realOldIndex = this.fromFirstChildIndex + event.oldIndex
+      event.realNewIndex = toFirstIndex + event.newIndex
       return event
     }
   }

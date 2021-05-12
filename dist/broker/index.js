@@ -62,8 +62,7 @@ export default function createBroker(VirtualList) {
         function Broker() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
             _this.vlsPolicy = new VirtualScrollListPolicy();
-            _this.onStartFromFirstChildIndex = 0;
-            _this.onStartToFirstChildIndex = 0;
+            _this.fromFirstChildIndex = 0;
             return _this;
         }
         // Override
@@ -112,16 +111,17 @@ export default function createBroker(VirtualList) {
             ];
         };
         Broker.prototype.handleOnStartRealIndex = function (event) {
-            var _a, _b, _c, _d, _e, _f;
+            var _a, _b, _c;
             var fromFirstChild = (_a = event.from) === null || _a === void 0 ? void 0 : _a.firstElementChild;
-            var toFirstChild = (_b = event.to) === null || _b === void 0 ? void 0 : _b.firstElementChild;
-            this.onStartFromFirstChildIndex = parseInt((_d = (_c = fromFirstChild === null || fromFirstChild === void 0 ? void 0 : fromFirstChild.dataset) === null || _c === void 0 ? void 0 : _c.index) !== null && _d !== void 0 ? _d : '0');
-            this.onStartToFirstChildIndex = parseInt((_f = (_e = toFirstChild === null || toFirstChild === void 0 ? void 0 : toFirstChild.dataset) === null || _e === void 0 ? void 0 : _e.index) !== null && _f !== void 0 ? _f : '0');
+            this.fromFirstChildIndex = parseInt((_c = (_b = fromFirstChild === null || fromFirstChild === void 0 ? void 0 : fromFirstChild.dataset) === null || _b === void 0 ? void 0 : _b.index) !== null && _c !== void 0 ? _c : '0');
             return event;
         };
         Broker.prototype.handleOnEndRealIndex = function (event) {
-            event.realNewIndex = this.onStartToFirstChildIndex + event.newIndex;
-            event.realOldIndex = this.onStartFromFirstChildIndex + event.oldIndex;
+            var _a, _b, _c;
+            var toFirstChild = (_a = event.to) === null || _a === void 0 ? void 0 : _a.firstElementChild;
+            var toFirstIndex = parseInt((_c = (_b = toFirstChild === null || toFirstChild === void 0 ? void 0 : toFirstChild.dataset) === null || _b === void 0 ? void 0 : _b.index) !== null && _c !== void 0 ? _c : '0');
+            event.realOldIndex = this.fromFirstChildIndex + event.oldIndex;
+            event.realNewIndex = toFirstIndex + event.newIndex;
             return event;
         };
         __decorate([
