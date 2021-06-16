@@ -90,6 +90,7 @@ export default function createBroker(VirtualList) {
                 h(Draggable, {
                     props: {
                         value: this.dataSources,
+                        move: this.move,
                         // policy will find the real item from x.
                         clone: function (x) { return draggablePolicy.findRealItem(x); },
                     },
@@ -130,6 +131,9 @@ export default function createBroker(VirtualList) {
         __decorate([
             Prop()
         ], Broker.prototype, "extraProps", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "move", void 0);
         __decorate([
             Prop()
         ], Broker.prototype, "keeps", void 0);

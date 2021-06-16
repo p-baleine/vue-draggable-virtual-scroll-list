@@ -55,6 +55,7 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
     // See: https://github.com/tangbc/vue-virtual-scroll-list#props-type
     @Prop() estimateSize?: number;
     @Prop() extraProps?: object;
+    @Prop() move?: Function;
     @Prop() keeps!: number;
     @Prop() dataKey!: keyof T;
     @Prop() dataSources!: Array<T>;
@@ -96,6 +97,7 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
         h(Draggable, {
           props: {
             value: this.dataSources,
+            move: this.move,
 
             // policy will find the real item from x.
             clone: (x: T) => draggablePolicy.findRealItem(x),
