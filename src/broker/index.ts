@@ -1,13 +1,7 @@
-import { CreateElement, VueConstructor, VNode } from 'vue';
-import { Vue, Component, Inject, Prop } from 'vue-property-decorator';
-
-import DraggablePolicyCtor, {
-  Instruction,
-  instructionNames as draggableEvents
-} from './draggable-policy';
-import VirtualScrollListPolicy, {
-  CustomDragEvent,
-} from './virtual-scroll-list-policy';
+import type { CreateElement, VNode, VueConstructor } from "vue";
+import { Prop, Inject, Component } from "vue-property-decorator";
+import DraggablePolicy, { Instruction, instructionNames as draggableEvents } from "./draggable-policy";
+import VirtualScrollListPolicy, { CustomDragEvent } from './virtual-scroll-list-policy';
 
 export interface IDraggable<T> extends VueConstructor {
   props: {
@@ -62,7 +56,7 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
     @Prop() dataComponent!: Vue;
 
     @Inject() Draggable!: IDraggable<T>;
-    @Inject() DraggablePolicy!: typeof DraggablePolicyCtor;
+    @Inject() DraggablePolicy!: typeof DraggablePolicy;
 
     private range: { start: number };
     private vlsPolicy = new VirtualScrollListPolicy();

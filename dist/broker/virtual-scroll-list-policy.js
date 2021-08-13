@@ -6,21 +6,21 @@ var VirtualScrollListPolicy = /** @class */ (function () {
         get: function () {
             return this._draggingVNode;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(VirtualScrollListPolicy.prototype, "draggingIndex", {
         get: function () {
             return this._draggingIndex;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(VirtualScrollListPolicy.prototype, "draggingRealIndex", {
         get: function () {
             return this._draggingRealIndex;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     VirtualScrollListPolicy.prototype.onDragStart = function (e, range, slots) {

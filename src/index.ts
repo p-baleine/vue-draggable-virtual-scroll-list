@@ -1,4 +1,4 @@
-import { CreateElement } from 'vue';
+import type { CreateElement } from 'vue';
 import Draggable from 'vuedraggable';
 import VirtualList from 'vue-virtual-scroll-list';
 import { Vue, Component, Prop, Provide } from 'vue-property-decorator';
