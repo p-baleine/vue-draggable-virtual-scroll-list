@@ -1,4 +1,4 @@
-import { CreateElement } from 'vue';
+import type { CreateElement } from 'vue';
 import { Vue } from 'vue-property-decorator';
 import DraggablePolicy from './broker/draggable-policy';
 export default class DraggableVirtualList<T> extends Vue {

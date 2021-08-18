@@ -1,5 +1,5 @@
-import { MoveEvent } from 'sortablejs';
-import { VNode } from 'vue';
+import type { MoveEvent } from 'sortablejs';
+import type { VNode } from 'vue';
 export interface CustomDragEvent extends MoveEvent {
     oldIndex: number;
     newIndex: number;
