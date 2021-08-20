@@ -1,5 +1,5 @@
-import type { CreateElement, VNode, VueConstructor } from "vue";
-import { Instruction } from "./draggable-policy";
+import type { CreateElement, VNode, VueConstructor } from 'vue';
+import { Instruction } from './draggable-policy';
 export interface IDraggable<T> extends VueConstructor {
     props: {
         value: Array<T>;

@@ -1,5 +1,5 @@
 declare module 'vue-virtual-scroll-list' {
-  import type { CreateElement, VNode, VueConstructor } from "vue";
+  import type { CreateElement, VNode, VueConstructor } from 'vue';
 
   export interface VirtualList extends VueConstructor {
     options: {

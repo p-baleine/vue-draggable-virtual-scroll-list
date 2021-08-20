@@ -19,7 +19,7 @@ export default class DraggableVirtualList<T> extends Vue {
   $refs: any
   public render(h: CreateElement) {
     return h(Broker, {
-      ref: "broker",
+      ref: 'broker',
       props: this.$props,
       attrs: this.$attrs,
       on: {

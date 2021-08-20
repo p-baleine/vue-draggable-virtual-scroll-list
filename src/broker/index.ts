@@ -1,6 +1,6 @@
-import type { CreateElement, VNode, VueConstructor } from "vue";
-import { Prop, Inject, Component } from "vue-property-decorator";
-import DraggablePolicy, { Instruction, instructionNames as draggableEvents } from "./draggable-policy";
+import type { CreateElement, VNode, VueConstructor } from 'vue';
+import { Prop, Inject, Component } from 'vue-property-decorator';
+import DraggablePolicy, { Instruction, instructionNames as draggableEvents } from './draggable-policy';
 import VirtualScrollListPolicy, { CustomDragEvent } from './virtual-scroll-list-policy';
 
 export interface IDraggable<T> extends VueConstructor {
