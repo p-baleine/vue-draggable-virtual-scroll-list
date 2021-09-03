@@ -30,8 +30,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-import { Prop, Inject, Component } from "vue-property-decorator";
-import { instructionNames as draggableEvents } from "./draggable-policy";
+import { Prop, Inject, Component } from 'vue-property-decorator';
+import { instructionNames as draggableEvents } from './draggable-policy';
 import VirtualScrollListPolicy from './virtual-scroll-list-policy';
 export var SortableEvents;
 (function (SortableEvents) {
@@ -77,17 +77,19 @@ export default function createBroker(VirtualList) {
             var _this = this;
             var _a = this, Draggable = _a.Draggable, DraggablePolicy = _a.DraggablePolicy;
             var slots = VirtualList.options.methods.getRenderSlots.call(this, h);
-            // Add index on the slots
+            // Add index and class name on the slots
             slots.forEach(function (slot, index) {
                 slot.data.attrs = {
                     'data-index': index + _this.range.start
                 };
+                slot.data.class = ['item'];
             });
             var draggablePolicy = new DraggablePolicy(this.dataKey, this.dataSources, this.range);
             if (this.vlsPolicy.draggingVNode) {
                 // ドラッグ中の要素を vls に差し込む
                 slots.splice(this.vlsPolicy.draggingIndex, 1, this.vlsPolicy.draggingVNode);
             }
+            console.log(this.draggableAttrs);
             return [
                 h(Draggable, {
                     props: {
@@ -109,7 +111,7 @@ export default function createBroker(VirtualList) {
                             _this.vlsPolicy.onDragEnd();
                             _this.$emit('end', _this.handleOnEndRealIndex(e));
                         } }),
-                    attrs: this.$attrs,
+                    attrs: __assign(__assign({}, this.$attrs), this.draggableAttrs),
                 }, slots),
             ];
         };
@@ -148,6 +150,9 @@ export default function createBroker(VirtualList) {
         __decorate([
             Prop()
         ], Broker.prototype, "dataComponent", void 0);
+        __decorate([
+            Prop()
+        ], Broker.prototype, "draggableAttrs", void 0);
         __decorate([
             Inject()
         ], Broker.prototype, "Draggable", void 0);

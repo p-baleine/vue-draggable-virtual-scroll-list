@@ -84,6 +84,7 @@
           <draggable-virtual-list
             class="phrase-list"
             v-model="items"
+            :draggable-attrs="{'draggable': '.item'}"
             :estimate-size="50"
             :keeps="20"
             :data-key="'id'"

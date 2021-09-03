@@ -54,6 +54,9 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
     @Prop() dataKey!: keyof T;
     @Prop() dataSources!: Array<T>;
     @Prop() dataComponent!: Vue;
+    // Directly use draggable for the attrs will cause unexpected result (Whole list can be draggable)
+    // so separate the draggable attributes to props
+    @Prop() draggableAttrs!: object;
 
     @Inject() Draggable!: IDraggable<T>;
     @Inject() DraggablePolicy!: typeof DraggablePolicy;
@@ -72,12 +75,14 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
       const { Draggable, DraggablePolicy } = this;
       const slots: VNode[] = VirtualList.options.methods.getRenderSlots.call(this, h);
 
-      // Add index on the slots
+      // Add index and class name on the slots
       slots.forEach((slot: VNode, index) => {
         slot.data.attrs = {
           'data-index': index + this.range.start
         }
+        slot.data.class = ['item']
       })
+
       const draggablePolicy = new DraggablePolicy(
         this.dataKey, this.dataSources, this.range);
 
@@ -86,7 +91,7 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
         slots.splice(
           this.vlsPolicy.draggingIndex, 1, this.vlsPolicy.draggingVNode);
       }
-
+      console.log(this.draggableAttrs)
       return [
         h(Draggable, {
           props: {
@@ -118,7 +123,10 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
               this.$emit('end', this.handleOnEndRealIndex(e));
             }
           },
-          attrs: this.$attrs,
+          attrs: {
+            ...this.$attrs,
+            ...this.draggableAttrs,
+          },
         }, slots),
       ];
     }

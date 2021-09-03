@@ -48,7 +48,7 @@ var DraggableVirtualList = /** @class */ (function (_super) {
     }
     DraggableVirtualList.prototype.render = function (h) {
         return h(Broker, {
-            ref: "broker",
+            ref: 'broker',
             props: this.$props,
             attrs: this.$attrs,
             on: __assign(__assign({ 
