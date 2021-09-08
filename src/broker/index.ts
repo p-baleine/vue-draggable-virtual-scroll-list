@@ -58,6 +58,11 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
     // so separate the draggable attributes to props
     @Prop() draggableAttrs!: object;
 
+    // Function for checking if current items is draggable or not
+    @Prop({
+      default: () => () => true
+    }) getIsItemDraggable?: Function;
+
     @Inject() Draggable!: IDraggable<T>;
     @Inject() DraggablePolicy!: typeof DraggablePolicy;
 
@@ -80,7 +85,7 @@ export default function createBroker(VirtualList: IVirtualList): IVirtualList {
         slot.data.attrs = {
           'data-index': index + this.range.start
         }
-        slot.data.class = ['item']
+        slot.data.class = this.getIsItemDraggable(this.dataSources[index]) ? ['item'] : []
       })
 
       const draggablePolicy = new DraggablePolicy(

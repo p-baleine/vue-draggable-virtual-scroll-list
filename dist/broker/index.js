@@ -82,7 +82,7 @@ export default function createBroker(VirtualList) {
                 slot.data.attrs = {
                     'data-index': index + _this.range.start
                 };
-                slot.data.class = ['item'];
+                slot.data.class = _this.isDraggable(_this.dataSources[index]) ? ['item'] : [];
             });
             var draggablePolicy = new DraggablePolicy(this.dataKey, this.dataSources, this.range);
             if (this.vlsPolicy.draggingVNode) {
@@ -152,6 +152,11 @@ export default function createBroker(VirtualList) {
         __decorate([
             Prop()
         ], Broker.prototype, "draggableAttrs", void 0);
+        __decorate([
+            Prop({
+                default: function () { return function () { return true; }; }
+            })
+        ], Broker.prototype, "isDraggable", void 0);
         __decorate([
             Inject()
         ], Broker.prototype, "Draggable", void 0);
