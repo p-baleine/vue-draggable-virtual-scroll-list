@@ -1,5 +1,4 @@
-import { CreateElement, VueConstructor, VNode } from 'vue';
-import { Vue } from 'vue-property-decorator';
+import type { CreateElement, VNode, VueConstructor } from 'vue';
 import { Instruction } from './draggable-policy';
 export interface IDraggable<T> extends VueConstructor {
     props: {
@@ -28,7 +27,14 @@ export declare enum SortableEvents {
     filter = 8,
     clone = 9
 }
+export declare enum VirtualScrollEvents {
+    scroll = 0,
+    totop = 1,
+    tobottom = 2,
+    resized = 3
+}
 declare type DraggableEvent<T> = Instruction<T> & Event;
 export default function createBroker(VirtualList: IVirtualList): IVirtualList;
+export declare function virtualScrollEventHandlers(context: Vue): {};
 export declare function sortableEventHandlers(context: Vue): {};
 export {};

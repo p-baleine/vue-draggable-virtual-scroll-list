@@ -1,7 +1,13 @@
-import { VNode } from 'vue';
+// vuedraggable interface is different from sortablejs 
+import type { MoveEvent } from 'sortablejs';
+import type { VNode } from 'vue';
 
-export interface DragStartEvent extends Event {
+export interface CustomDragEvent extends MoveEvent {
+  originalEvent: DragEvent;
   oldIndex: number;
+  newIndex: number;
+  realOldIndex: number;
+  realNewIndex: number;
 }
 
 export interface VirtualRange {
@@ -26,7 +32,7 @@ export default class VirtualScrollListPolicy {
   }
 
   public onDragStart(
-    e: DragStartEvent,
+    e: CustomDragEvent,
     range: VirtualRange,
     slots: Array<VNode>) {
     this._draggingIndex = e.oldIndex;

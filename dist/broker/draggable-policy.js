@@ -1,9 +1,7 @@
-var __spreadArrays = (this && this.__spreadArrays) || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
+var __spreadArray = (this && this.__spreadArray) || function (to, from) {
+    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
+        to[j] = from[i];
+    return to;
 };
 import logger from '../logger';
 export var instructionNames = ['moved', 'added', 'removed'];
@@ -23,7 +21,7 @@ var DraggablePolicy = /** @class */ (function () {
     // Returns a new list which is created based on
     // the update `instruction`.
     DraggablePolicy.prototype.updatedSources = function (instruction, draggingRealIndex) {
-        var newList = __spreadArrays(this.dataSources);
+        var newList = __spreadArray([], this.dataSources);
         if ('moved' in instruction) {
             var newIndex = instruction.moved.newIndex;
             var start = this.visibleRange.start + newIndex;

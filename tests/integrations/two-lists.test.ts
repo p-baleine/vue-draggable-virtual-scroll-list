@@ -12,16 +12,20 @@ describe('two-lists', () => {
     const items = generateItems(length)
     const propsData = {
       value: items,
-      size: 20,
+      estimateSize: 20,
       keeps: 20,
       dataKey: 'id',
       dataSources: items,
       dataComponent: Item
     }
     const wrapper = mount(DraggableVirtualList, {
-      attachToDocument: true,
       propsData
     })
+    // virtual-list will need to use client height and scroll height
+    // if both are zero, the scroll event will be ignored
+    const el = wrapper.vm.$refs.broker.$refs.root
+    Object.defineProperty(el, 'clientHeight', { configurable: true, value: 500 })
+    Object.defineProperty(el, 'scrollHeight', { configurable: true, value: propsData.estimateSize * items.length })
     return { wrapper, items, propsData }
   }
 
@@ -37,7 +41,7 @@ describe('two-lists', () => {
 
   describe('DnD', () => {
     function draggableWrapper(lst: any) {
-      return lst.wrapper.find({ name: 'draggable'})
+      return lst.wrapper.findComponent({ name: 'draggable' })
     }
 
     async function swapBetweenLists(lhsIndex: number, rhsIndex: number) {
@@ -76,9 +80,9 @@ describe('two-lists', () => {
 
     async function triggerScrollEvents(lst: any, offset: number) {
       const { wrapper, propsData } = lst
-      const virtualList = wrapper.find({ name: 'broker' })
-      virtualList.vm.setScrollOffset(propsData.size * offset)
-      virtualList.find({ ref: 'root' }).trigger('scroll')
+      const virtualList = wrapper.findComponent({ name: 'broker' })
+      virtualList.vm.scrollToOffset(propsData.estimateSize * offset)
+      virtualList.findComponent({ ref: 'root' }).trigger('scroll')
       await Vue.nextTick()
     }
 

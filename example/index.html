@@ -2,14 +2,14 @@
 <html>
   <head>
     <title>An example of vue-draggable-virtual-scroll-list</title>
-    <script src="https://unpkg.com/vue@2.6.11"></script>
+    <script src="https://unpkg.com/vue@2.6.14"></script>
     <script src="https://cdn.rawgit.com/Marak/faker.js/v4.1.0/examples/browser/js/faker.min.js"></script>
     <script src="../dist/bundle.js"></script>
     <style>
       html {
         font: 16px/1.6 Helvetica Neue,Helvetica,Arial,sans-serif;
         margin: 0;
-        padding 0;
+        padding: 0;
       }
       body {
         background-color: #fafafe;
@@ -84,11 +84,13 @@
           <draggable-virtual-list
             class="phrase-list"
             v-model="items"
-            :size="50"
+            :draggable-attrs="{'draggable': '.item'}"
+            :estimate-size="50"
             :keeps="20"
             :data-key="'id'"
             :data-sources="items"
             :data-component="Item"
+			@end="handleOnEnd"
           >
           </draggable-virtual-list>
         </div>
@@ -101,11 +103,13 @@
             class="phrase-list"
             group="phrase-list"
             v-model="items2"
-            :size="50"
+            ref="draggable"
+            :estimate-size="50"
             :keeps="20"
             :data-key="'id'"
             :data-sources="items2"
             :data-component="Item"
+            @end="handleOnEnd"
           >
           </draggable-virtual-list>
 
@@ -113,11 +117,12 @@
             class="phrase-list"
             group="phrase-list"
             v-model="items3"
-            :size="50"
+            :estimate-size="50"
             :keeps="20"
             :data-key="'id'"
             :data-sources="items3"
             :data-component="Item"
+            @end="handleOnEnd"
           >
           </draggable-virtual-list>
         </div>
@@ -160,10 +165,13 @@
             items: generateItems(10000),
             // Make sure that elements of two lists have unique ids.
             items2: generateItems(500, 'lhs-'),
-            items3: generateItems(100, 'rhs-'),
+            items3: generateItems(1, 'rhs-'),
             Item
           }
         },
+		methods: {
+			handleOnEnd(evt) { console.log(evt); }
+		}
       })
     </script>
   </body>
